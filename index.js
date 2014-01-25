@@ -1,3 +1,3 @@
-exports.hello = function() {
-	console.log('x123');
+module.exports = function() {
+	console.log('module');
 };

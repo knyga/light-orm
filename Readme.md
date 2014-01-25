@@ -41,7 +41,7 @@ mAuthor.update({
 
 //Also, you can set specific value to pk
 mAuthor.update({
-	pk: {
+	pkValue: {
 		id_author: 5
 	},
 	fields: ['name']
@@ -57,7 +57,7 @@ mAuthor.remove({
 
 //Also, you can set specific value to pk
 mAuthor.remove({
-	pk: {
+	pkValue: {
 		id_author: 5
 	}
 });
