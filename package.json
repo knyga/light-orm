@@ -1,0 +1,20 @@
+{
+  "author": "Oleksandr Knyga <oleksandrknyga@gmail.com>",
+  "name": "light-orm",
+  "description": "A node.js orm wrapper for mysql driver.",
+  "version": "0.0.1",
+  "homepage": "https://github.com/knyga/light-orm",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/knyga/light-orm"
+  },
+  "main": "./index",
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "mysql": "2.0.1"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {}
+}

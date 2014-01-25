@@ -1,0 +1,7 @@
+{
+  "name": "example light orm",
+  "dependencies": {
+    "mysql": "2.0.1",
+    "light-orm": "git@github.com:knyga/light-orm.git"
+  }
+}
