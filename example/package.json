@@ -1,6 +1,6 @@
 {
   "dependencies": {
     "mysql": "2.0.1",
-    "light-orm": "knyga/light-orm"
+    "light-orm": "0.0.2"
   }
 }

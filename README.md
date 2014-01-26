@@ -1,5 +1,5 @@
 ##Light-orm
-Light-orm - super simple ORM node.js wrapper for relational databases. It do not depends on any specific driver, so you can connect to mysql, ms server and so on...
+Light-orm - simple ORM node.js wrapper for relational databases. It do not depends on any specific driver, so you can connect to mysql, ms server and so on...
 
 Your db connector (or wrapper) just should implement the interface:
 ```
@@ -88,6 +88,11 @@ Get custom row by sql:
 AuthorCollection.findOne("SELECT COUNT(*) as `count` FROM `author` WHERE name = '" + author.name + "'", function(err, data) {
 	var count = data.get('count');
 });
+```
+
+Save:
+```javascript
+model.create(function(err, model) {});
 ```
 
 Update:
