@@ -11,6 +11,9 @@ This interface came from node-mysql driver, as most popular option, that lets yo
 
 Light-orm gives you freedom in choising your own driver. You should not any more make meet half-way between high driver performance with native realization and ORM wrapper.
 
+###Install
+`npm install light-orm`
+
 ###Development
 Light-orm is written on typescript. Look for the sources here: lib/typescript and lib/compiler. You may find there comments in jsdoc style.
 
