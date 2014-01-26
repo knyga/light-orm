@@ -1,7 +1,7 @@
 {
   "author": "Oleksandr Knyga <oleksandrknyga@gmail.com>",
   "name": "light-orm",
-  "description": "A node.js orm wrapper for mysql driver.",
+  "description": "Super simple ORM node.js wrapper for relational databases. It do not depends on any specific driver, so you can connect to mysql, ms server and so on... Try it!",
   "version": "0.0.1",
   "homepage": "https://github.com/knyga/light-orm",
   "repository": {
@@ -13,5 +13,54 @@
     "node": "*"
   },
   "devDependencies": {},
-  "optionalDependencies": {}
+  "optionalDependencies": {},
+  "bugs": {
+    "url": "https://github.com/knyga/light-orm/issues"
+  },
+  "dependencies": {},
+  "directories": {
+    "example": "example"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "orm",
+    "mysql",
+    "simple",
+    "postgresql",
+    "sql",
+    "server",
+    "ms",
+    "server",
+    "database",
+    "db",
+    "wrapper",
+    "pdo",
+    "propel",
+    "mongodb",
+    "oracle",
+    "microsoft",
+    "relational",
+    "relational",
+    "database",
+    "management",
+    "system",
+    "rdbms",
+    "ibm",
+    "db2",
+    "ibm",
+    "informix",
+    "my",
+    "sql",
+    "object",
+    "model",
+    "collection",
+    "entity",
+    "framework",
+    "connector",
+    "light",
+    "typescript"
+  ],
+  "license": "Apache License, Version 2.0"
 }
