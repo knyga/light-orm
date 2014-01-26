@@ -5,7 +5,7 @@
 class SQLHelper {
     private separator: string = ", ";
 
-    private buildWhere(data: {string: any}) : string {
+    private buildWhere(data: {}) : string {
         var whereQuery = "";
 
         for(var name in data) {
@@ -18,7 +18,7 @@ class SQLHelper {
         return whereQuery;
     }
 
-    private buildAttrs(data: {string: any}, keys?: boolean) : string {
+    private buildAttrs(data: {}, keys?: boolean) : string {
         var query = "";
 
         if("undefined" === typeof keys) {
@@ -44,13 +44,13 @@ class SQLHelper {
         }
 
         if(query.length > 0) {
-            query = query.substr(query.length - this.separator.length);
+            query = query.substring(0, query.length - this.separator.length);
         }
 
         return query;
     }
 
-    public buildSelect(tableName: string, whereData?: {string: any}) {
+    public buildSelect(tableName: string, whereData?: {}) {
         var query = "SELECT * FROM `" + tableName + "`";
 
         if("undefined" !== typeof whereData) {
@@ -61,7 +61,7 @@ class SQLHelper {
         return query;
     }
 
-    public buildUpdate(tableName: string, valuesData: {string: any}, whereData?: {string: any}) {
+    public buildUpdate(tableName: string, valuesData: {}, whereData?: {}) {
         var query = "UPDATE `" + tableName + "`"
             + " SET ";
 
@@ -73,7 +73,7 @@ class SQLHelper {
             }
         }
 
-        query = query.substr(query.length - this.separator.length);
+        query = query.substring(0, query.length - this.separator.length);
 
         if("undefined" !== typeof whereData) {
             query += " WHERE ";
@@ -83,11 +83,11 @@ class SQLHelper {
         return query;
     }
 
-    public buildInsert(tableName: string, valuesData: {string: any}) {
-        var query = "INSERT INTO `" + tableName + "`";
+    public buildInsert(tableName: string, valuesData: {}) {
+        var query = "INSERT INTO `" + tableName + "` (";
 
         query += this.buildAttrs(valuesData, true);
-        query += " VALUES ";
+        query += ") VALUES ";
         query += " (";
         query += this.buildAttrs(valuesData, false);
         query += ")";
@@ -95,8 +95,8 @@ class SQLHelper {
         return query;
     }
 
-    public buildDelete(tableName: string, whereData?: {string: any}) {
-        var query = "DELECT FROM `" + tableName + "`";
+    public buildDelete(tableName: string, whereData?: {}) {
+        var query = "DELETE FROM `" + tableName + "`";
 
         if("undefined" !== typeof whereData) {
             query += " WHERE ";

@@ -3,7 +3,8 @@
  */
 
 interface GetSetInterface {
+    getAll();
     get(name: string);
     set(name: string, value: any);
-    set(data: {string: any} );
+    set(data: {} );
 }

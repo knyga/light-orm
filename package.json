@@ -12,9 +12,6 @@
   "engines": {
     "node": "*"
   },
-  "dependencies": {
-    "mysql": "2.0.1"
-  },
   "devDependencies": {},
   "optionalDependencies": {}
 }

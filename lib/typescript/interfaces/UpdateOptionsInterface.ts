@@ -3,7 +3,7 @@
  */
 
 interface UpdateOptionsInterface {
-    pkValue: {string: any};
+    pkValue: {};
     pk: Array<string>;
     //fields: Array<string>;
 }
