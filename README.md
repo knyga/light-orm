@@ -11,7 +11,7 @@ This interface came from node-mysql driver, as most popular option, that lets yo
 
 Light-orm gives you freedom in choising your own driver. You should not any more make meet half-way between high driver performance with native realization and ORM wrapper.
 
-###Install
+###Installation
 `npm install light-orm`
 
 ###Development
