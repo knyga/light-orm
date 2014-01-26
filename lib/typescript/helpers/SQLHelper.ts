@@ -1,5 +1,7 @@
 /**
- * Created by agnynk on 26.01.14.
+ * Wrapper on basic search operations
+ * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+ * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
  */
 
 class SQLHelper {
@@ -50,6 +52,12 @@ class SQLHelper {
         return query;
     }
 
+    /**
+     * Create SELECT SQL query
+     * @param {string} tableName
+     * @param {object} whereData Conditions for WHERE block in query
+     * @returns {string} Query
+     */
     public buildSelect(tableName: string, whereData?: {}) {
         var query = "SELECT * FROM `" + tableName + "`";
 
@@ -60,7 +68,13 @@ class SQLHelper {
 
         return query;
     }
-
+    /**
+     * Create UPDATE SQL query
+     * @param {string} tableName
+     * @param {string} valuesData Fieldnames and values that should be updated
+     * @param {object} whereData Conditions for WHERE block in query
+     * @returns {string} Query
+     */
     public buildUpdate(tableName: string, valuesData: {}, whereData?: {}) {
         var query = "UPDATE `" + tableName + "`"
             + " SET ";
@@ -83,6 +97,12 @@ class SQLHelper {
         return query;
     }
 
+    /**
+     * Create INSERT SQL query
+     * @param {string} tableName
+     * @param {string} valuesData Fieldnames and values that should be inserted
+     * @returns {string} Query
+     */
     public buildInsert(tableName: string, valuesData: {}) {
         var query = "INSERT INTO `" + tableName + "` (";
 
@@ -95,6 +115,12 @@ class SQLHelper {
         return query;
     }
 
+    /**
+     * Create DELETE SQL query
+     * @param {string} tableName
+     * @param {object} whereData Conditions for WHERE block in query
+     * @returns {string} Query
+     */
     public buildDelete(tableName: string, whereData?: {}) {
         var query = "DELETE FROM `" + tableName + "`";
 

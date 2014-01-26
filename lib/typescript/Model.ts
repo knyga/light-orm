@@ -1,5 +1,7 @@
 /**
- * Created by agnynk on 26.01.14.
+ * Provides basic model methods
+ * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+ * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
  */
 
 ///<reference path="interfaces/CrudInterface.ts" />
@@ -26,6 +28,12 @@ module Light {
 //        private afterList: { (type: string): void; } [] = [];
         private sqlHelper: SQLHelper;
 
+        /**
+         * Constructor
+         * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
+         * @param {object} attributes Attributes, that will be setted during construction
+         * @param tableName
+         */
         constructor(connector: DriverInterface, tableName?: string, attributes?: {}) {
             this.connector = connector;
             this.tableName = tableName;
@@ -73,21 +81,42 @@ module Light {
             return obj;
         }
 
+        /**
+         * Get All attributes
+         * @returns {object}
+         */
         getAll() {
             return this.attributes;
         }
 
+        /**
+         * Get attribute by name
+         * Throws error if none
+         * @param {string} name Name of attribute
+         * @returns {any} Value of attribute
+         */
         get(name: string) : any {
 
-            if(this.attributes.hasOwnProperty(name)) {
-                return this.attributes[name];
-            } else {
-                return null;
+            if(!this.attributes.hasOwnProperty(name)) {
+                throw new Error("No attribute with name " + name);
             }
+
+            return this.attributes[name];
         }
 
+        /**
+         * Set attributes
+         * @param {object} options New attributes {name: value}
+         */
         set(options: {})
+
+        /**
+         * Set attribute
+         * @param {string} name Name of attribute
+         * @param {any} value Value of attribute
+         */
         set(name: string, value: any)
+
         set(arg1: any, arg2?: any) {
 
             if("string" === typeof arg1 && "undefined" !== typeof arg2) {
@@ -105,6 +134,10 @@ module Light {
             }
         }
 
+        /**
+         * Create model
+         * @param {function} callback
+         */
         create(callback?: (err?, rows?, fields?) => void) {
             var query = this.sqlHelper.buildInsert(this.tableName, this.attributes);
             this.connector.query(query, (err, rows, fields) => {
@@ -118,8 +151,19 @@ module Light {
 //            });
         }
 
-        update(callback?: (err?, model?) => void);
-        update(options: {}, callback?: (err?, model?) => void);
+        /**
+         * Update model
+         * @param {function} callback
+         */
+        update(callback?: (err?, model?) => void)
+
+        /**
+         * Update model
+         * @param {UpdateOptionsInterface} options Object to select data {pk: [], pkValue: {}}
+         * @param {function} callback
+         */
+        update(options: {}, callback?: (err?, model?) => void)
+
         update(input?: any, callback?: (err?, model?) => void) {
             var whereOptions: {} = {},
                 options: UpdateOptionsInterface;
@@ -163,8 +207,20 @@ module Light {
 //                this.callAfterHandlers(Model.UPDATE);
 //            });
         }
+
+        /**
+         * Remove model
+         * @param {function} callback
+         */
         remove(callback?: (err?, model?) => void);
+
+        /**
+         * Remove model
+         * @param {UpdateOptionsInterface} options Object to select data {pk: [], pkValue: {}}
+         * @param callback
+         */
         remove(options: {}, callback?: (err?, model?) => void);
+
         remove(input?: any, callback?: (err?, model?) => void) {
             var whereOptions: {} = {},
                 options: UpdateOptionsInterface;
@@ -209,6 +265,10 @@ module Light {
 //            });
         }
 
+        /**
+         * Create string from object
+         * @returns {string}
+         */
         toString(): string {
             return "[LightOrm Model <"
                 + this.tableName
@@ -217,6 +277,10 @@ module Light {
                 + ">]";
         }
 
+        /**
+         * Get attributes of model
+         * @returns {object}
+         */
         toJSON(): any {
             return this.attributes;
         }

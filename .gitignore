@@ -1,3 +1,5 @@
+.idea
 node_modules
 example/node_modules
 example/connection.json
+lib/typescript/.idea

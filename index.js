@@ -1,21 +1,33 @@
 /**
-* Created by agnynk on 25.01.14.
+* Interface to update/delete selection options
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 /**
-* Created by agnynk on 25.01.14.
+* Interface to CRUD operations
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 ///<reference path="UpdateOptionsInterface.ts" />
 /**
-* Created by agnynk on 25.01.14.
+* Interface to Driver
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 /**
-* Created by agnynk on 25.01.14.
+* Interface to GET/SET operations
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 /**
-* Created by agnynk on 25.01.14.
+* Interface to before/after event setters
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 /**
-* Created by agnynk on 26.01.14.
+* Wrapper on basic search operations
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 var SQLHelper = (function () {
     function SQLHelper() {
@@ -61,6 +73,12 @@ var SQLHelper = (function () {
         return query;
     };
 
+    /**
+    * Create SELECT SQL query
+    * @param {string} tableName
+    * @param {object} whereData Conditions for WHERE block in query
+    * @returns {string} Query
+    */
     SQLHelper.prototype.buildSelect = function (tableName, whereData) {
         var query = "SELECT * FROM `" + tableName + "`";
 
@@ -72,6 +90,13 @@ var SQLHelper = (function () {
         return query;
     };
 
+    /**
+    * Create UPDATE SQL query
+    * @param {string} tableName
+    * @param {string} valuesData Fieldnames and values that should be updated
+    * @param {object} whereData Conditions for WHERE block in query
+    * @returns {string} Query
+    */
     SQLHelper.prototype.buildUpdate = function (tableName, valuesData, whereData) {
         var query = "UPDATE `" + tableName + "`" + " SET ";
 
@@ -91,6 +116,12 @@ var SQLHelper = (function () {
         return query;
     };
 
+    /**
+    * Create INSERT SQL query
+    * @param {string} tableName
+    * @param {string} valuesData Fieldnames and values that should be inserted
+    * @returns {string} Query
+    */
     SQLHelper.prototype.buildInsert = function (tableName, valuesData) {
         var query = "INSERT INTO `" + tableName + "` (";
 
@@ -103,6 +134,12 @@ var SQLHelper = (function () {
         return query;
     };
 
+    /**
+    * Create DELETE SQL query
+    * @param {string} tableName
+    * @param {object} whereData Conditions for WHERE block in query
+    * @returns {string} Query
+    */
     SQLHelper.prototype.buildDelete = function (tableName, whereData) {
         var query = "DELETE FROM `" + tableName + "`";
 
@@ -116,13 +153,19 @@ var SQLHelper = (function () {
     return SQLHelper;
 })();
 /**
-* Created by agnynk on 26.01.14.
+* Interface to String transformation
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 /**
-* Created by agnynk on 26.01.14.
+* Interface to JSON transformation
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 /**
-* Created by agnynk on 26.01.14.
+* Provides basic model methods
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 ///<reference path="interfaces/CrudInterface.ts" />
 ///<reference path="interfaces/DriverInterface.ts" />
@@ -135,6 +178,12 @@ var SQLHelper = (function () {
 var Light;
 (function (Light) {
     var Model = (function () {
+        /**
+        * Constructor
+        * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
+        * @param {object} attributes Attributes, that will be setted during construction
+        * @param tableName
+        */
         function Model(connector, tableName, attributes) {
             //        public static CREATE = 'create';
             //        public static UPDATE = 'update';
@@ -183,16 +232,26 @@ var Light;
             return obj;
         };
 
+        /**
+        * Get All attributes
+        * @returns {object}
+        */
         Model.prototype.getAll = function () {
             return this.attributes;
         };
 
+        /**
+        * Get attribute by name
+        * Throws error if none
+        * @param {string} name Name of attribute
+        * @returns {any} Value of attribute
+        */
         Model.prototype.get = function (name) {
-            if (this.attributes.hasOwnProperty(name)) {
-                return this.attributes[name];
-            } else {
-                return null;
+            if (!this.attributes.hasOwnProperty(name)) {
+                throw new Error("No attribute with name " + name);
             }
+
+            return this.attributes[name];
         };
 
         Model.prototype.set = function (arg1, arg2) {
@@ -209,6 +268,10 @@ var Light;
             }
         };
 
+        /**
+        * Create model
+        * @param {function} callback
+        */
         Model.prototype.create = function (callback) {
             var query = this.sqlHelper.buildInsert(this.tableName, this.attributes);
             this.connector.query(query, function (err, rows, fields) {
@@ -304,10 +367,18 @@ var Light;
             //            });
         };
 
+        /**
+        * Create string from object
+        * @returns {string}
+        */
         Model.prototype.toString = function () {
             return "[LightOrm Model <" + this.tableName + ", " + (this.get(this.pkAttr) ? this.get(this.pkAttr) : "undefined") + ">]";
         };
 
+        /**
+        * Get attributes of model
+        * @returns {object}
+        */
         Model.prototype.toJSON = function () {
             return this.attributes;
         };
@@ -316,7 +387,9 @@ var Light;
     Light.Model = Model;
 })(Light || (Light = {}));
 /**
-* Created by agnynk on 26.01.14.
+* Provides model creation and search methods
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 ///<reference path="Model.ts" />
 ///<reference path="helpers/SQLHelper.ts" />
@@ -326,6 +399,11 @@ var Light;
 var Light;
 (function (Light) {
     var Collection = (function () {
+        /**
+        * Constructor
+        * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
+        * @param tableName
+        */
         function Collection(connector, tableName) {
             this.models = [];
             this.connector = connector;
@@ -354,10 +432,20 @@ var Light;
             return model;
         };
 
+        /**
+        * Get all models from saved models list
+        * @returns {Model[]}
+        */
         Collection.prototype.getModels = function () {
             return this.models;
         };
 
+        /**
+        * Get model at position from saved models list
+        * Throws error if none
+        * @param {number} at Position
+        * @returns {Model}
+        */
         Collection.prototype.getModel = function (at) {
             if (this.models.length <= at) {
                 throw new Error("No model at " + at);
@@ -407,10 +495,18 @@ var Light;
             });
         };
 
+        /**
+        * Create string from object
+        * @returns {string}
+        */
         Collection.prototype.toString = function () {
             return "[LightOrm Collection <" + this.tableName + ">]";
         };
 
+        /**
+        * Create array of attributes of saved models
+        * @returns {array}
+        */
         Collection.prototype.toJSON = function () {
             var data = [];
             for (var i = 0, length = this.models.length; i < length; i++) {

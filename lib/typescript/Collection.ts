@@ -1,5 +1,7 @@
 /**
- * Created by agnynk on 26.01.14.
+ * Provides model creation and search methods
+ * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+ * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
  */
 
 ///<reference path="Model.ts" />
@@ -15,15 +17,36 @@ module Light {
         private sqlHelper: SQLHelper;
         private models: Model[] = [];
 
+        /**
+         * Constructor
+         * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
+         * @param tableName
+         */
         constructor(connector: DriverInterface, tableName?: string) {
             this.connector = connector;
             this.tableName = tableName;
             this.sqlHelper = new SQLHelper();
         }
 
+        /**
+         * Create model
+         * @param data Attributes, that will be setted during construction
+         */
         createModel(data: {});
+
+        /**
+         * Create model
+         * @param {boolean} add True, if created model should be added to models list
+         */
         createModel(add: boolean);
+
+        /**
+         * Create model
+         * @param data Attributes, that will be setted during construction
+         * @param {boolean} add True, if created model should be added to models list
+         */
         createModel(data: {}, add: boolean);
+
         createModel(options?: any, add?: boolean) : Model {
             var model, data;
 
@@ -46,10 +69,20 @@ module Light {
             return model;
         }
 
+        /**
+         * Get all models from saved models list
+         * @returns {Model[]}
+         */
         getModels() {
             return this.models;
         }
 
+        /**
+         * Get model at position from saved models list
+         * Throws error if none
+         * @param {number} at Position
+         * @returns {Model}
+         */
         getModel(at: number): Model {
 
             if(this.models.length <= at) {
@@ -59,8 +92,20 @@ module Light {
             return this.models[at];
         }
 
+        /**
+         * Search models by query
+         * @param search Query to search
+         * @param callback
+         */
         find(search: string, callback?: (err: string, models?: Model[]) => void);
+
+        /**
+         * Search models by object
+         * @param search Query to search
+         * @param callback
+         */
         find(search: {}, callback?: (err: string, models?: Model[]) => void);
+
         find(search: any, callback?: (err: string, models?: Model[]) => void) {
             var query = "";
 
@@ -88,8 +133,20 @@ module Light {
             });
         }
 
+        /**
+         * Search one model by query
+         * @param search Query to search
+         * @param callback
+         */
         findOne(search: string, callback?: (err: string, model?: Model) => void);
+
+        /**
+         * Search one model by object
+         * @param search Query to search
+         * @param callback
+         */
         findOne(search: {}, callback?: (err: string, model?: Model) => void);
+
         findOne(search: any, callback?: (err: string, model?: Model) => void) {
             this.find(search, (lerr, lmodels?) => {
                 var model: Model;
@@ -104,10 +161,18 @@ module Light {
             });
         }
 
+        /**
+         * Create string from object
+         * @returns {string}
+         */
         toString(): string {
             return "[LightOrm Collection <" + this.tableName + ">]";
         }
 
+        /**
+         * Create array of attributes of saved models
+         * @returns {array}
+         */
         toJSON(): any {
             var data = [];
             for(var i = 0, length = this.models.length; i < length; i++) {

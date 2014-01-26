@@ -1,5 +1,7 @@
 /**
- * Created by agnynk on 25.01.14.
+ * Interface to GET/SET operations
+ * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+ * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
  */
 
 interface GetSetInterface {
