@@ -2,7 +2,7 @@
   "author": "Oleksandr Knyga <oleksandrknyga@gmail.com>",
   "name": "light-orm",
   "description": "Super simple ORM node.js wrapper for relational databases. It do not depends on any specific driver, so you can connect to mysql, ms server and so on... Try it!",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "homepage": "https://github.com/knyga/light-orm",
   "repository": {
     "type": "git",
@@ -22,7 +22,7 @@
     "example": "example"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Look for example\" && exit 1"
   },
   "keywords": [
     "orm",
@@ -60,7 +60,12 @@
     "framework",
     "connector",
     "light",
-    "typescript"
+    "typescript",
+    "odm",
+    "postgres",
+    "redshift",
+    "sqlite",
+    "mongodb"
   ],
   "license": "Apache License, Version 2.0"
 }
