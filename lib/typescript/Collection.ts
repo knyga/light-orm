@@ -30,7 +30,10 @@ module Light {
         constructor(options: any, tableName?: string, extensions?: any) {
 
             if(Object.prototype.toString.call(options) === '[object Array]') {
-                this.models = options;
+
+                for(var i = 0; i < options.length; i++) {
+                    this.createModel(options[i]);
+                }
             } else {
 
                 if(options.hasOwnProperty('connector')) {

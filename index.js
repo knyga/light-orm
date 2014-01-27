@@ -417,7 +417,9 @@ var Light;
         function Collection(options, tableName, extensions) {
             this.models = [];
             if (Object.prototype.toString.call(options) === '[object Array]') {
-                this.models = options;
+                for (var i = 0; i < options.length; i++) {
+                    this.createModel(options[i]);
+                }
             } else {
                 if (options.hasOwnProperty('connector')) {
                     for (var name in options) {
