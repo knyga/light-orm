@@ -1,6 +1,5 @@
 var mysql = require('mysql'),
-	lightOrm = require('../');
-//lightOrm = require('light-orm');
+	lightOrm = require('light-orm');
 
 var connection = mysql.createConnection(require('./connection.json'));
 
@@ -119,4 +118,14 @@ AuthorCollection.findOne({
 	}, function(err) {
 		console.log(err);
 	});
+});
+
+AuthorCollection.find({
+	name: "me"
+}, function(err, authors) {
+
+});
+
+AuthorCollection.findAll(function(err, authors) {
+	
 });
