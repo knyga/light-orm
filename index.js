@@ -416,17 +416,21 @@ var Light;
     var Collection = (function () {
         function Collection(options, tableName, extensions) {
             this.models = [];
-            if (options.hasOwnProperty('connector')) {
-                for (var name in options) {
-                    this[name] = options[name];
-                }
+            if (Object.prototype.toString.call(options) === '[object Array]') {
+                this.models = options;
             } else {
-                this.connector = options;
-                this.tableName = tableName;
+                if (options.hasOwnProperty('connector')) {
+                    for (var name in options) {
+                        this[name] = options[name];
+                    }
+                } else {
+                    this.connector = options;
+                    this.tableName = tableName;
 
-                if ("undefined" !== typeof extensions) {
-                    for (var name in extensions) {
-                        this[name] = extensions[name];
+                    if ("undefined" !== typeof extensions) {
+                        for (var name in extensions) {
+                            this[name] = extensions[name];
+                        }
                     }
                 }
             }

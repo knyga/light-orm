@@ -26,21 +26,27 @@ module Light {
          */
         constructor(connector: DriverInterface, tableName?: string, extensions?: any)
         constructor(options: any)
+        constructor(models: Model[])
         constructor(options: any, tableName?: string, extensions?: any) {
 
-            if(options.hasOwnProperty('connector')) {
-
-                for(var name in options) {
-                    this[name] = options[name];
-                }
+            if(Object.prototype.toString.call(options) === '[object Array]') {
+                this.models = options;
             } else {
-                this.connector = options;
-                this.tableName = tableName;
 
-                if("undefined" !== typeof extensions) {
+                if(options.hasOwnProperty('connector')) {
 
-                    for(var name in extensions) {
-                        this[name] = extensions[name];
+                    for(var name in options) {
+                        this[name] = options[name];
+                    }
+                } else {
+                    this.connector = options;
+                    this.tableName = tableName;
+
+                    if("undefined" !== typeof extensions) {
+
+                        for(var name in extensions) {
+                            this[name] = extensions[name];
+                        }
                     }
                 }
             }
