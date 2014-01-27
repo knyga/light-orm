@@ -494,8 +494,7 @@ var Light;
                     var models = [];
 
                     for (var i = 0; i < rows.length; i++) {
-                        var model = new Light.Model(_this.connector, _this.tableName);
-                        model.set(rows[i]);
+                        var model = new Light.Model(_this.connector, _this.tableName, rows[i], _this.modelExtension);
                         models.push(model);
                     }
 
@@ -509,7 +508,7 @@ var Light;
         * @param callback
         */
         Collection.prototype.findAll = function (callback) {
-            this.find({}, callback);
+            this.find(undefined, callback);
         };
 
         Collection.prototype.findOne = function (search, callback) {

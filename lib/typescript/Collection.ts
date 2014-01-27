@@ -143,8 +143,7 @@ module Light {
                     var models: Model[] = [];
 
                     for(var i = 0; i<rows.length; i++) {
-                        var model = new Model(this.connector, this.tableName);
-                        model.set(rows[i]);
+                        var model = new Model(this.connector, this.tableName, rows[i], this.modelExtension);
                         models.push(model);
                     }
 
@@ -158,7 +157,7 @@ module Light {
          * @param callback
          */
         findAll(callback?: (err: string, model?: Model[]) => void) {
-            this.find({}, callback);
+            this.find(undefined, callback);
         }
 
         /**

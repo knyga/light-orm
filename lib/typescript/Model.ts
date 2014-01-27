@@ -36,7 +36,6 @@ module Light {
          * @param tableName
          */
         constructor(connector: DriverInterface, tableName: string, attributes?: {}, extensions?: any)
-        constructor(options: any)
         constructor(options: any, tableName: string, attributes?: {}, extensions?: any) {
 
             if(options.hasOwnProperty('connector')) {
