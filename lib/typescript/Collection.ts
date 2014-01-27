@@ -157,7 +157,7 @@ module Light {
          * Get all models
          * @param callback
          */
-        findAll(callback?: (err: string, model?: Model) => void) {
+        findAll(callback?: (err: string, model?: Model[]) => void) {
             this.find({}, callback);
         }
 
