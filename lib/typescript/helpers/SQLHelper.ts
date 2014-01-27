@@ -7,7 +7,6 @@
 class SQLHelper{
     private separator: string = ", ";
     private static entity: SQLHelper;
-    private constructor() {}
 
     public static getEntity() {
 

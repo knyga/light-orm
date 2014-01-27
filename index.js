@@ -33,6 +33,14 @@ var SQLHelper = (function () {
     function SQLHelper() {
         this.separator = ", ";
     }
+    SQLHelper.getEntity = function () {
+        if ("undefined" === typeof SQLHelper.entity) {
+            SQLHelper.entity = new SQLHelper();
+        }
+
+        return SQLHelper.entity;
+    };
+
     SQLHelper.prototype.buildWhere = function (data) {
         var whereQuery = "";
 
@@ -178,25 +186,32 @@ var SQLHelper = (function () {
 var Light;
 (function (Light) {
     var Model = (function () {
-        /**
-        * Constructor
-        * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
-        * @param {object} attributes Attributes, that will be setted during construction
-        * @param tableName
-        */
-        function Model(connector, tableName, attributes) {
+        function Model(options, tableName, attributes, extensions) {
             //        public static CREATE = 'create';
             //        public static UPDATE = 'update';
             //        public static REMOVE = 'remove';
             this.pkAttr = 'id';
             this.attributes = {};
-            this.connector = connector;
-            this.tableName = tableName;
-            this.sqlHelper = new SQLHelper();
+            if (options.hasOwnProperty('connector')) {
+                for (var name in options) {
+                    this[name] = options[name];
+                }
+            } else {
+                this.connector = options;
+                this.tableName = tableName;
 
-            if ("undefined" !== typeof attributes) {
-                this.set(attributes);
+                if ("undefined" !== typeof attributes) {
+                    this.set(attributes);
+                }
+
+                if ("undefined" !== typeof extensions) {
+                    for (var name in extensions) {
+                        this[name] = extensions[name];
+                    }
+                }
             }
+
+            this.sqlHelper = SQLHelper.getEntity();
         }
         //        private callBeforeHandlers(type: string) {
         //            for(var i=0;i<this.beforeList.length;i++) {
@@ -399,16 +414,24 @@ var Light;
 var Light;
 (function (Light) {
     var Collection = (function () {
-        /**
-        * Constructor
-        * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
-        * @param tableName
-        */
-        function Collection(connector, tableName) {
+        function Collection(options, tableName, extensions) {
             this.models = [];
-            this.connector = connector;
-            this.tableName = tableName;
-            this.sqlHelper = new SQLHelper();
+            if (options.hasOwnProperty('connector')) {
+                this.connector = options;
+                this.tableName = tableName;
+
+                if ("undefined" !== typeof extensions) {
+                    for (var name in extensions) {
+                        this[name] = extensions[name];
+                    }
+                }
+            } else {
+                for (var name in options) {
+                    this[name] = options[name];
+                }
+            }
+
+            this.sqlHelper = SQLHelper.getEntity();
         }
         Collection.prototype.createModel = function (options, add) {
             var model, data;
@@ -423,7 +446,7 @@ var Light;
                 add = true;
             }
 
-            model = new Light.Model(this.connector, this.tableName, data);
+            model = new Light.Model(this.connector, this.tableName, data, this.modelExtension);
 
             if (add) {
                 this.models.push(model);
