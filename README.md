@@ -1,5 +1,5 @@
 ##Light-orm
-Light-orm - simple ORM node.js wrapper for relational databases. It do not depends on any specific driver, so you can connect to mysql, ms server and so on...
+Light-orm - simple ORM node.js wrapper for relational databases. It does not depends on any specific driver, so you can connect to mysql, postgresql, ms server with your favorite driver.
 
 Your db connector (or wrapper) just should implement the interface:
 ```
