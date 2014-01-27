@@ -209,13 +209,22 @@ module Light {
 
                             if("undefined" !== typeof rows && rows.length > 0) {
                                 var model = new Model(this.connector, this.tableName, rows[0]);
-                                callback(err, model);
+
+                                if("function" === typeof callback) {
+                                    callback(err, model);
+                                }
                             } else {
-                                callback(err);
+
+                                if("function" === typeof callback) {
+                                    callback(err);
+                                }
                             }
                         });
                     } else {
-                        callback(err);
+
+                        if("function" === typeof callback) {
+                            callback(err);
+                        }
                     }
                 }
             });
@@ -266,13 +275,22 @@ module Light {
 
                             if("undefined" !== typeof rows && rows.length > 0) {
                                 var model = new Model(this.connector, this.tableName, rows[0]);
-                                callback(err, model);
+
+                                if("function" === typeof callback) {
+                                    callback(err, model);
+                                }
                             } else {
-                                callback(err);
+
+                                if("function" === typeof callback) {
+                                    callback(err);
+                                }
                             }
                         });
                     } else {
-                        callback(err);
+
+                        if("function" === typeof callback) {
+                            callback(err);
+                        }
                     }
                 }
             });

@@ -325,13 +325,20 @@ var Light;
                         _this.connector.query(query, function (err, rows, fields) {
                             if ("undefined" !== typeof rows && rows.length > 0) {
                                 var model = new Model(_this.connector, _this.tableName, rows[0]);
-                                callback(err, model);
+
+                                if ("function" === typeof callback) {
+                                    callback(err, model);
+                                }
                             } else {
-                                callback(err);
+                                if ("function" === typeof callback) {
+                                    callback(err);
+                                }
                             }
                         });
                     } else {
-                        callback(err);
+                        if ("function" === typeof callback) {
+                            callback(err);
+                        }
                     }
                 }
             });
@@ -366,13 +373,20 @@ var Light;
                         _this.connector.query(query, function (err, rows, fields) {
                             if ("undefined" !== typeof rows && rows.length > 0) {
                                 var model = new Model(_this.connector, _this.tableName, rows[0]);
-                                callback(err, model);
+
+                                if ("function" === typeof callback) {
+                                    callback(err, model);
+                                }
                             } else {
-                                callback(err);
+                                if ("function" === typeof callback) {
+                                    callback(err);
+                                }
                             }
                         });
                     } else {
-                        callback(err);
+                        if ("function" === typeof callback) {
+                            callback(err);
+                        }
                     }
                 }
             });
@@ -499,7 +513,9 @@ var Light;
 
             this.connector.query(query, function (err, rows, fields) {
                 if (err) {
-                    callback(err);
+                    if ("function" === typeof callback) {
+                        callback(err);
+                    }
                 } else {
                     var models = [];
 
@@ -508,7 +524,9 @@ var Light;
                         models.push(model);
                     }
 
-                    callback(null, models);
+                    if ("function" === typeof callback) {
+                        callback(null, models);
+                    }
                 }
             });
         };
@@ -529,7 +547,7 @@ var Light;
                     model = lmodels[0];
                 }
 
-                if ("undefined" !== typeof callback) {
+                if ("function" === typeof callback) {
                     callback(lerr, model);
                 }
             });

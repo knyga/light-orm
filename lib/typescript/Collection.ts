@@ -34,7 +34,7 @@ module Light {
                 if(options.length > 0 && options[0] instanceof Model) {
                     this.models = options;
                 } else {
-                    
+
                     for(var i = 0; i < options.length; i++) {
                         this.createModel(options[i]);
                     }
@@ -152,7 +152,10 @@ module Light {
             this.connector.query(query, (err, rows, fields) => {
 
                 if(err) {
-                    callback(err);
+
+                    if("function" === typeof callback) {
+                        callback(err);
+                    }
                 } else {
                     var models: Model[] = [];
 
@@ -161,7 +164,9 @@ module Light {
                         models.push(model);
                     }
 
-                    callback(null, models);
+                    if("function" === typeof callback) {
+                        callback(null, models);
+                    }
                 }
             });
         }
@@ -196,7 +201,7 @@ module Light {
                     model = lmodels[0];
                 }
 
-                if("undefined" !== typeof callback) {
+                if("function" === typeof callback) {
                     callback(lerr, model);
                 }
             });
