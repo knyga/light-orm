@@ -18,16 +18,21 @@ class SQLHelper{
     }
 
     private buildWhere(data: {}) : string {
-        var whereQuery = "";
+        var query = "",
+            joinString = " AND ";
 
         for(var name in data) {
 
             if(data.hasOwnProperty(name)) {
-                whereQuery += name + "= '" + data[name] + "'";
+                query += name + "= '" + data[name] + "'" + joinString;
             }
         }
 
-        return whereQuery;
+        if(query.length > 0) {
+            query = query.substring(0, query.length - joinString.length);
+        }
+
+        return query;
     }
 
     private buildAttrs(data: {}, keys?: boolean) : string {

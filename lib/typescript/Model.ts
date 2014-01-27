@@ -157,10 +157,34 @@ module Light {
          * @param {function} callback
          */
         create(callback?: (err?, rows?, fields?) => void) {
-            var query = this.sqlHelper.buildInsert(this.tableName, this.attributes);
+            var that = this,
+                query = this.sqlHelper.buildInsert(this.tableName, this.attributes);
             this.connector.query(query, (err, rows, fields) => {
-                if("function" === typeof callback) {
-                    callback(err, rows, fields);
+
+                if(/\([^,]+, [^,]+/.test(callback.toString())) {
+                    var whereOptions = this.attributes;
+                    query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
+                    this.connector.query(query, (err, rows, fields) => {
+
+                        if("undefined" !== typeof rows && rows.length > 0) {
+                            var model = new Model(this.connector, this.tableName, rows[0]);
+                            that.set(model.attributes);
+
+                            if("function" === typeof callback) {
+                                callback(err, that);
+                            }
+                        } else {
+
+                            if("function" === typeof callback) {
+                                callback(err);
+                            }
+                        }
+                    });
+                } else {
+
+                    if("function" === typeof callback) {
+                        callback(err);
+                    }
                 }
             });
 //            this.callBeforeHandlers(Model.CREATE);
@@ -183,7 +207,8 @@ module Light {
         update(options: {}, callback?: (err?, model?) => void)
 
         update(input?: any, callback?: (err?, model?) => void) {
-            var whereOptions: {} = {},
+            var that = this,
+                whereOptions: {} = {},
                 options: UpdateOptionsInterface;
 
             if("function" === typeof input) {
@@ -209,9 +234,10 @@ module Light {
 
                             if("undefined" !== typeof rows && rows.length > 0) {
                                 var model = new Model(this.connector, this.tableName, rows[0]);
+                                that.set(model.attributes);
 
                                 if("function" === typeof callback) {
-                                    callback(err, model);
+                                    callback(err, that);
                                 }
                             } else {
 
@@ -249,7 +275,8 @@ module Light {
         remove(options: {}, callback?: (err?, model?) => void);
 
         remove(input?: any, callback?: (err?, model?) => void) {
-            var whereOptions: {} = {},
+            var that = this,
+                whereOptions: {} = {},
                 options: UpdateOptionsInterface;
 
             if("function" === typeof input) {
@@ -275,9 +302,10 @@ module Light {
 
                             if("undefined" !== typeof rows && rows.length > 0) {
                                 var model = new Model(this.connector, this.tableName, rows[0]);
+                                that.set(model.attributes);
 
                                 if("function" === typeof callback) {
-                                    callback(err, model);
+                                    callback(err, that);
                                 }
                             } else {
 

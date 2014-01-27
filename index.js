@@ -42,15 +42,19 @@ var SQLHelper = (function () {
     };
 
     SQLHelper.prototype.buildWhere = function (data) {
-        var whereQuery = "";
+        var query = "", joinString = " AND ";
 
         for (var name in data) {
             if (data.hasOwnProperty(name)) {
-                whereQuery += name + "= '" + data[name] + "'";
+                query += name + "= '" + data[name] + "'" + joinString;
             }
         }
 
-        return whereQuery;
+        if (query.length > 0) {
+            query = query.substring(0, query.length - joinString.length);
+        }
+
+        return query;
     };
 
     SQLHelper.prototype.buildAttrs = function (data, keys) {
@@ -288,10 +292,30 @@ var Light;
         * @param {function} callback
         */
         Model.prototype.create = function (callback) {
-            var query = this.sqlHelper.buildInsert(this.tableName, this.attributes);
+            var _this = this;
+            var that = this, query = this.sqlHelper.buildInsert(this.tableName, this.attributes);
             this.connector.query(query, function (err, rows, fields) {
-                if ("function" === typeof callback) {
-                    callback(err, rows, fields);
+                if (/\([^,]+, [^,]+/.test(callback.toString())) {
+                    var whereOptions = _this.attributes;
+                    query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
+                    _this.connector.query(query, function (err, rows, fields) {
+                        if ("undefined" !== typeof rows && rows.length > 0) {
+                            var model = new Model(_this.connector, _this.tableName, rows[0]);
+                            that.set(model.attributes);
+
+                            if ("function" === typeof callback) {
+                                callback(err, that);
+                            }
+                        } else {
+                            if ("function" === typeof callback) {
+                                callback(err);
+                            }
+                        }
+                    });
+                } else {
+                    if ("function" === typeof callback) {
+                        callback(err);
+                    }
                 }
             });
             //            this.callBeforeHandlers(Model.CREATE);
@@ -302,7 +326,7 @@ var Light;
 
         Model.prototype.update = function (input, callback) {
             var _this = this;
-            var whereOptions = {}, options;
+            var that = this, whereOptions = {}, options;
 
             if ("function" === typeof input) {
                 callback = input;
@@ -325,9 +349,10 @@ var Light;
                         _this.connector.query(query, function (err, rows, fields) {
                             if ("undefined" !== typeof rows && rows.length > 0) {
                                 var model = new Model(_this.connector, _this.tableName, rows[0]);
+                                that.set(model.attributes);
 
                                 if ("function" === typeof callback) {
-                                    callback(err, model);
+                                    callback(err, that);
                                 }
                             } else {
                                 if ("function" === typeof callback) {
@@ -350,7 +375,7 @@ var Light;
 
         Model.prototype.remove = function (input, callback) {
             var _this = this;
-            var whereOptions = {}, options;
+            var that = this, whereOptions = {}, options;
 
             if ("function" === typeof input) {
                 callback = input;
@@ -373,9 +398,10 @@ var Light;
                         _this.connector.query(query, function (err, rows, fields) {
                             if ("undefined" !== typeof rows && rows.length > 0) {
                                 var model = new Model(_this.connector, _this.tableName, rows[0]);
+                                that.set(model.attributes);
 
                                 if ("function" === typeof callback) {
-                                    callback(err, model);
+                                    callback(err, that);
                                 }
                             } else {
                                 if ("function" === typeof callback) {
