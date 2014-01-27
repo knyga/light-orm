@@ -154,6 +154,14 @@ module Light {
         }
 
         /**
+         * Get all models
+         * @param callback
+         */
+        findAll(callback?: (err: string, model?: Model) => void) {
+            this.find({}, callback);
+        }
+
+        /**
          * Search one model by query
          * @param search Query to search
          * @param callback

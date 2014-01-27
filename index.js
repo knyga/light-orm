@@ -504,6 +504,14 @@ var Light;
             });
         };
 
+        /**
+        * Get all models
+        * @param callback
+        */
+        Collection.prototype.findAll = function (callback) {
+            this.find({}, callback);
+        };
+
         Collection.prototype.findOne = function (search, callback) {
             this.find(search, function (lerr, lmodels) {
                 var model;
