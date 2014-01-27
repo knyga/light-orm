@@ -31,8 +31,13 @@ module Light {
 
             if(Object.prototype.toString.call(options) === '[object Array]') {
 
-                for(var i = 0; i < options.length; i++) {
-                    this.createModel(options[i]);
+                if(options.length > 0 && options[0] instanceof Model) {
+                    this.models = options;
+                } else {
+                    
+                    for(var i = 0; i < options.length; i++) {
+                        this.createModel(options[i]);
+                    }
                 }
             } else {
 

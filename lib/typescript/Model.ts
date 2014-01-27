@@ -38,7 +38,7 @@ module Light {
         constructor(connector: DriverInterface, tableName: string, attributes?: {}, extensions?: any)
         constructor(options: any, tableName: string, attributes?: {}, extensions?: any) {
 
-            if(options.hasOwnProperty('connector')) {
+            if("undefined" !== typeof options && options.hasOwnProperty('connector')) {
 
                 for(var name in options) {
                     this[name] = options[name];

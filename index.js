@@ -192,7 +192,7 @@ var Light;
             //        public static REMOVE = 'remove';
             this.pkAttr = 'id';
             this.attributes = {};
-            if (options.hasOwnProperty('connector')) {
+            if ("undefined" !== typeof options && options.hasOwnProperty('connector')) {
                 for (var name in options) {
                     this[name] = options[name];
                 }
@@ -417,8 +417,12 @@ var Light;
         function Collection(options, tableName, extensions) {
             this.models = [];
             if (Object.prototype.toString.call(options) === '[object Array]') {
-                for (var i = 0; i < options.length; i++) {
-                    this.createModel(options[i]);
+                if (options.length > 0 && options[0] instanceof Light.Model) {
+                    this.models = options;
+                } else {
+                    for (var i = 0; i < options.length; i++) {
+                        this.createModel(options[i]);
+                    }
                 }
             } else {
                 if (options.hasOwnProperty('connector')) {
