@@ -417,6 +417,10 @@ var Light;
         function Collection(options, tableName, extensions) {
             this.models = [];
             if (options.hasOwnProperty('connector')) {
+                for (var name in options) {
+                    this[name] = options[name];
+                }
+            } else {
                 this.connector = options;
                 this.tableName = tableName;
 
@@ -424,10 +428,6 @@ var Light;
                     for (var name in extensions) {
                         this[name] = extensions[name];
                     }
-                }
-            } else {
-                for (var name in options) {
-                    this[name] = options[name];
                 }
             }
 

@@ -29,6 +29,11 @@ module Light {
         constructor(options: any, tableName?: string, extensions?: any) {
 
             if(options.hasOwnProperty('connector')) {
+
+                for(var name in options) {
+                    this[name] = options[name];
+                }
+            } else {
                 this.connector = options;
                 this.tableName = tableName;
 
@@ -37,11 +42,6 @@ module Light {
                     for(var name in extensions) {
                         this[name] = extensions[name];
                     }
-                }
-            } else {
-
-                for(var name in options) {
-                    this[name] = options[name];
                 }
             }
 
