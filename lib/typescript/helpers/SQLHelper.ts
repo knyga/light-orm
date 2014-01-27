@@ -4,8 +4,19 @@
  * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
  */
 
-class SQLHelper {
+class SQLHelper{
     private separator: string = ", ";
+    private static entity: SQLHelper;
+    private constructor() {}
+
+    public static getEntity() {
+
+        if("undefined" === typeof SQLHelper.entity) {
+            SQLHelper.entity = new SQLHelper();
+        }
+
+        return SQLHelper.entity;
+    }
 
     private buildWhere(data: {}) : string {
         var whereQuery = "";

@@ -16,16 +16,36 @@ module Light {
         private connector: DriverInterface;
         private sqlHelper: SQLHelper;
         private models: Model[] = [];
+        private modelExtension: any;
 
         /**
          * Constructor
          * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
+         * @param {object} extensions New properties for current entity
          * @param tableName
          */
-        constructor(connector: DriverInterface, tableName?: string) {
-            this.connector = connector;
-            this.tableName = tableName;
-            this.sqlHelper = new SQLHelper();
+        constructor(connector: DriverInterface, tableName?: string, extensions?: any)
+        constructor(options: any)
+        constructor(options: any, tableName?: string, extensions?: any) {
+
+            if(options.hasOwnProperty('connector')) {
+                this.connector = options;
+                this.tableName = tableName;
+
+                if("undefined" !== typeof extensions) {
+
+                    for(var name in extensions) {
+                        this[name] = extensions[name];
+                    }
+                }
+            } else {
+
+                for(var name in options) {
+                    this[name] = options[name];
+                }
+            }
+
+            this.sqlHelper = SQLHelper.getEntity();
         }
 
         /**
@@ -60,7 +80,7 @@ module Light {
                 add = true;
             }
 
-            model = new Model(this.connector, this.tableName, data);
+            model = new Model(this.connector, this.tableName, data, this.modelExtension);
 
             if(add) {
                 this.models.push(model);

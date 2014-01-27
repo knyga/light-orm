@@ -32,16 +32,35 @@ module Light {
          * Constructor
          * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
          * @param {object} attributes Attributes, that will be setted during construction
+         * @param {object} extensions New properties for current entity
          * @param tableName
          */
-        constructor(connector: DriverInterface, tableName?: string, attributes?: {}) {
-            this.connector = connector;
-            this.tableName = tableName;
-            this.sqlHelper = new SQLHelper();
+        constructor(connector: DriverInterface, tableName: string, attributes?: {}, extensions?: any)
+        constructor(options: any)
+        constructor(options: any, tableName: string, attributes?: {}, extensions?: any) {
 
-            if("undefined" !== typeof attributes) {
-                this.set(attributes);
+            if(options.hasOwnProperty('connector')) {
+
+                for(var name in options) {
+                    this[name] = options[name];
+                }
+            } else {
+                this.connector = options;
+                this.tableName = tableName;
+
+                if("undefined" !== typeof attributes) {
+                    this.set(attributes);
+                }
+
+                if("undefined" !== typeof extensions) {
+
+                    for(var name in extensions) {
+                        this[name] = extensions[name];
+                    }
+                }
             }
+
+            this.sqlHelper = SQLHelper.getEntity();
         }
 
 //        private callBeforeHandlers(type: string) {
