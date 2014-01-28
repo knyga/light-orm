@@ -7,6 +7,11 @@
 interface GetSetInterface {
     getAll();
     get(name: string);
-    set(name: string, value: any);
-    set(data: {} );
+    set(name: string, value: any):void;
+    set(data: {} ):void;
+
+    has(name: string):boolean;
+
+    clear();
+    clear(name: string);
 }

@@ -25,12 +25,186 @@
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 /**
+* Escape string methods
+* https://github.com/felixge/node-mysql/blob/master/lib/protocol/SqlString.js
+*/
+
+var SqlString = (function () {
+    function SqlString() {
+    }
+    SqlString.getEntity = function () {
+        if ("undefined" === typeof SqlString.entity) {
+            SqlString.entity = new SqlString();
+        }
+
+        return SqlString.entity;
+    };
+
+    SqlString.prototype.convertTimezone = function (tz) {
+        if (tz == "Z")
+            return 0;
+
+        var m = tz.match(/([\+\-\s])(\d\d):?(\d\d)?/);
+
+        if (m) {
+            return (m[1] == '-' ? -1 : 1) * (parseInt(m[2], 10) + ((m[3] ? parseInt(m[3], 10) : 0) / 60)) * 60;
+        }
+
+        return 0;
+    };
+
+    SqlString.prototype.zeroPad = function (vnumber, vlength) {
+        var snumber = vnumber.toString();
+
+        while (snumber.length < vlength) {
+            snumber = '0' + snumber;
+        }
+
+        return snumber;
+    };
+
+    SqlString.prototype.dateToString = function (dt, timeZone) {
+        if (timeZone != 'local') {
+            var tz = this.convertTimezone(timeZone);
+
+            dt.setTime(dt.getTime() + (dt.getTimezoneOffset() * 60000));
+            if (!tz) {
+                dt.setTime(dt.getTime() + (tz * 60000));
+            }
+        }
+
+        var year = dt.getFullYear();
+        var month = this.zeroPad(dt.getMonth() + 1, 2);
+        var day = this.zeroPad(dt.getDate(), 2);
+        var hour = this.zeroPad(dt.getHours(), 2);
+        var minute = this.zeroPad(dt.getMinutes(), 2);
+        var second = this.zeroPad(dt.getSeconds(), 2);
+        var millisecond = this.zeroPad(dt.getMilliseconds(), 3);
+
+        return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second + '.' + millisecond;
+    };
+
+    SqlString.prototype.bufferToString = function (buffer) {
+        var hex = '';
+
+        try  {
+            hex = buffer.toString('hex');
+        } catch (err) {
+            for (var i = 0; i < buffer.length; i++) {
+                var vbyte = +buffer[i];
+                hex += this.zeroPad(vbyte.toString(16));
+            }
+        }
+
+        return "X'" + hex + "'";
+    };
+
+    SqlString.prototype.arrayToList = function (array, timeZone) {
+        var _this = this;
+        return array.map(function (v) {
+            if (Array.isArray(v)) {
+                return '(' + _this.arrayToList(v, timeZone) + ')';
+            }
+            return _this.escape(v, true, timeZone);
+        }).join(', ');
+    };
+
+    SqlString.prototype.objectToValues = function (object, timeZone) {
+        var values = [];
+        for (var key in object) {
+            var value = object[key];
+            if (typeof value === 'function') {
+                continue;
+            }
+
+            values.push(this.escapeId(key) + ' = ' + this.escape(value, true, timeZone));
+        }
+
+        return values.join(', ');
+    };
+
+    SqlString.prototype.escapeId = function (val, forbidQualified) {
+        var _this = this;
+        if ("undefined" === typeof forbidQualified) {
+            forbidQualified = false;
+        }
+
+        if (Array.isArray(val)) {
+            return val.map(function (v) {
+                return _this.escapeId(v, forbidQualified);
+            }).join(', ');
+        }
+
+        if (forbidQualified) {
+            return '`' + val.replace(/`/g, '``') + '`';
+        }
+
+        return '`' + val.replace(/`/g, '``').replace(/\./g, '`.`') + '`';
+    };
+
+    SqlString.prototype.escape = function (val, stringifyObjects, timeZone) {
+        if (val === undefined || val === null) {
+            return 'NULL';
+        }
+
+        switch (typeof val) {
+            case 'boolean':
+                return (val) ? 'true' : 'false';
+            case 'number':
+                return val + '';
+        }
+
+        if (val instanceof Date) {
+            val = this.dateToString(val, timeZone || 'local');
+        }
+
+        if (Buffer.isBuffer(val)) {
+            return this.bufferToString(val);
+        }
+
+        if (Array.isArray(val)) {
+            return this.arrayToList(val, timeZone);
+        }
+
+        if (typeof val === 'object') {
+            if (stringifyObjects) {
+                val = val.toString();
+            } else {
+                return this.objectToValues(val, timeZone);
+            }
+        }
+
+        val = val.replace(/[\0\n\r\b\t\\\'\"\x1a]/g, function (s) {
+            switch (s) {
+                case "\0":
+                    return "\\0";
+                case "\n":
+                    return "\\n";
+                case "\r":
+                    return "\\r";
+                case "\b":
+                    return "\\b";
+                case "\t":
+                    return "\\t";
+                case "\x1a":
+                    return "\\Z";
+                default:
+                    return "\\" + s;
+            }
+        });
+        return "'" + val + "'";
+    };
+    return SqlString;
+})();
+/**
 * Wrapper on basic search operations
 * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
+///<reference path="SqlString.ts" />
 var SQLHelper = (function () {
     function SQLHelper() {
+        this.sqlString = SqlString.getEntity();
         this.separator = ", ";
     }
     SQLHelper.getEntity = function () {
@@ -46,7 +220,7 @@ var SQLHelper = (function () {
 
         for (var name in data) {
             if (data.hasOwnProperty(name)) {
-                query += name + "= '" + data[name] + "'" + joinString;
+                query += "`" + name + "` = " + this.sqlString.escape(data[name]) + joinString;
             }
         }
 
@@ -67,17 +241,22 @@ var SQLHelper = (function () {
         if (keys) {
             for (var name in data) {
                 if (data.hasOwnProperty(name)) {
-                    query += "`" + name + "`" + this.separator;
+                    //                    query += "`" + name + "`"
+                    //                        + this.separator;
+                    query += this.sqlString.escapeId(name) + this.separator;
                 }
             }
         } else {
             for (var name in data) {
                 if (data.hasOwnProperty(name)) {
-                    query += "'" + data[name] + "'" + this.separator;
+                    //                    query += "'" + data[name] + "'"
+                    //                        + this.separator;
+                    query += this.sqlString.escape(data[name]) + this.separator;
                 }
             }
         }
 
+        //TODO: use join
         if (query.length > 0) {
             query = query.substring(0, query.length - this.separator.length);
         }
@@ -114,7 +293,7 @@ var SQLHelper = (function () {
 
         for (var name in valuesData) {
             if (valuesData.hasOwnProperty(name)) {
-                query += "`" + name + "` = '" + valuesData[name] + "'" + this.separator;
+                query += this.sqlString.escapeId(name) + "= " + this.sqlString.escape(valuesData[name]) + this.separator;
             }
         }
 
@@ -186,7 +365,7 @@ var SQLHelper = (function () {
 ///<reference path="interfaces/UpdateOptionsInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
 ///<reference path="interfaces/JSONInterface.ts" />
-///<reference path="helpers/SQLHelper.ts" />
+///<reference path="helpers/SqlHelper.ts" />
 var Light;
 (function (Light) {
     var Model = (function () {
@@ -261,16 +440,25 @@ var Light;
 
         /**
         * Get attribute by name
-        * Throws error if none
         * @param {string} name Name of attribute
         * @returns {any} Value of attribute
         */
         Model.prototype.get = function (name) {
             if (!this.attributes.hasOwnProperty(name)) {
-                throw new Error("No attribute with name " + name);
+                //throw new Error("No attribute with name " + name);
+                return null;
             }
 
             return this.attributes[name];
+        };
+
+        /**
+        * Check presence of attribute
+        * @param name
+        * @returns {boolean}
+        */
+        Model.prototype.has = function (name) {
+            return this.attributes.hasOwnProperty(name);
         };
 
         Model.prototype.set = function (arg1, arg2) {
@@ -287,15 +475,31 @@ var Light;
             }
         };
 
+        Model.prototype.clear = function (name) {
+            if ("undefined" === typeof name) {
+                this.attributes = {};
+            } else {
+                if (this.has(name)) {
+                    delete this.attributes[name];
+                }
+            }
+        };
+
         /**
         * Create model
         * @param {function} callback
+        * @param {boolean} isGetModel True, if sub request is needed
         */
-        Model.prototype.create = function (callback) {
+        Model.prototype.create = function (callback, isGetModel) {
             var _this = this;
             var that = this, query = this.sqlHelper.buildInsert(this.tableName, this.attributes);
+
+            if ("undefined" === typeof isGetModel) {
+                isGetModel = true;
+            }
+
             this.connector.query(query, function (err, rows, fields) {
-                if (/\([^,]+, [^,]+/.test(callback.toString())) {
+                if (isGetModel) {
                     var whereOptions = _this.attributes;
                     query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
                     _this.connector.query(query, function (err, rows, fields) {
@@ -324,7 +528,7 @@ var Light;
             //            });
         };
 
-        Model.prototype.update = function (input, callback) {
+        Model.prototype.update = function (input, callback, isGetModel) {
             var _this = this;
             var that = this, whereOptions = {}, options;
 
@@ -342,28 +546,35 @@ var Light;
 
             var query = this.sqlHelper.buildUpdate(this.tableName, this.attributes, whereOptions);
 
-            this.connector.query(query, function (err, rows, fields) {
-                if ("function" === typeof callback) {
-                    if (/\([^,]+, [^,]+/.test(callback.toString())) {
-                        query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
-                        _this.connector.query(query, function (err, rows, fields) {
-                            if ("undefined" !== typeof rows && rows.length > 0) {
-                                var model = new Model(_this.connector, _this.tableName, rows[0]);
-                                that.set(model.attributes);
+            if ("undefined" === typeof isGetModel) {
+                if ("boolean" === typeof callback) {
+                    isGetModel = callback;
+                } else {
+                    isGetModel = true;
+                }
+            }
 
-                                if ("function" === typeof callback) {
-                                    callback(err, that);
-                                }
-                            } else {
-                                if ("function" === typeof callback) {
-                                    callback(err);
-                                }
+            this.connector.query(query, function (err, rows, fields) {
+                if (isGetModel) {
+                    var whereOptions = _this.attributes;
+                    query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
+                    _this.connector.query(query, function (err, rows, fields) {
+                        if ("undefined" !== typeof rows && rows.length > 0) {
+                            var model = new Model(_this.connector, _this.tableName, rows[0]);
+                            that.set(model.attributes);
+
+                            if ("function" === typeof callback) {
+                                callback(err, that);
                             }
-                        });
-                    } else {
-                        if ("function" === typeof callback) {
-                            callback(err);
+                        } else {
+                            if ("function" === typeof callback) {
+                                callback(err);
+                            }
                         }
+                    });
+                } else {
+                    if ("function" === typeof callback) {
+                        callback(err);
                     }
                 }
             });
@@ -373,7 +584,7 @@ var Light;
             //            });
         };
 
-        Model.prototype.remove = function (input, callback) {
+        Model.prototype.remove = function (input, callback, isGetModel) {
             var _this = this;
             var that = this, whereOptions = {}, options;
 
@@ -391,28 +602,35 @@ var Light;
 
             var query = this.sqlHelper.buildDelete(this.tableName, whereOptions);
 
-            this.connector.query(query, function (err, rows, fields) {
-                if ("function" === typeof callback) {
-                    if (/\([^,]+, [^,]+/.test(callback.toString())) {
-                        query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
-                        _this.connector.query(query, function (err, rows, fields) {
-                            if ("undefined" !== typeof rows && rows.length > 0) {
-                                var model = new Model(_this.connector, _this.tableName, rows[0]);
-                                that.set(model.attributes);
+            if ("undefined" === typeof isGetModel) {
+                if ("boolean" === typeof callback) {
+                    isGetModel = callback;
+                } else {
+                    isGetModel = true;
+                }
+            }
 
-                                if ("function" === typeof callback) {
-                                    callback(err, that);
-                                }
-                            } else {
-                                if ("function" === typeof callback) {
-                                    callback(err);
-                                }
+            this.connector.query(query, function (err, rows, fields) {
+                if (isGetModel) {
+                    var whereOptions = _this.attributes;
+                    query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
+                    _this.connector.query(query, function (err, rows, fields) {
+                        if ("undefined" !== typeof rows && rows.length > 0) {
+                            var model = new Model(_this.connector, _this.tableName, rows[0]);
+                            that.set(model.attributes);
+
+                            if ("function" === typeof callback) {
+                                callback(err, that);
                             }
-                        });
-                    } else {
-                        if ("function" === typeof callback) {
-                            callback(err);
+                        } else {
+                            if ("function" === typeof callback) {
+                                callback(err);
+                            }
                         }
+                    });
+                } else {
+                    if ("function" === typeof callback) {
+                        callback(err);
                     }
                 }
             });
@@ -447,7 +665,7 @@ var Light;
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 ///<reference path="Model.ts" />
-///<reference path="helpers/SQLHelper.ts" />
+///<reference path="helpers/SqlHelper.ts" />
 ///<reference path="interfaces/DriverInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
 ///<reference path="interfaces/JSONInterface.ts" />
@@ -515,13 +733,13 @@ var Light;
 
         /**
         * Get model at position from saved models list
-        * Throws error if none
         * @param {number} at Position
         * @returns {Model}
         */
         Collection.prototype.getModel = function (at) {
             if (this.models.length <= at) {
-                throw new Error("No model at " + at);
+                //throw new Error("No model at " + at);
+                return null;
             }
 
             return this.models[at];

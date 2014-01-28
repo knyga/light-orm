@@ -4,7 +4,10 @@
  * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
  */
 
+///<reference path="SqlString.ts" />
+
 class SQLHelper{
+    private sqlString: SqlString = SqlString.getEntity();
     private separator: string = ", ";
     private static entity: SQLHelper;
 
@@ -24,7 +27,7 @@ class SQLHelper{
         for(var name in data) {
 
             if(data.hasOwnProperty(name)) {
-                query += name + "= '" + data[name] + "'" + joinString;
+                query += "`" + name + "` = " + this.sqlString.escape(data[name]) + joinString;
             }
         }
 
@@ -46,20 +49,23 @@ class SQLHelper{
             for(var name in data) {
 
                 if(data.hasOwnProperty(name)) {
-                    query += "`" + name + "`"
-                        + this.separator;
+//                    query += "`" + name + "`"
+//                        + this.separator;
+                    query += this.sqlString.escapeId(name) + this.separator;
                 }
             }
         } else {
             for(var name in data) {
 
                 if(data.hasOwnProperty(name)) {
-                    query += "'" + data[name] + "'"
-                        + this.separator;
+//                    query += "'" + data[name] + "'"
+//                        + this.separator;
+                    query += this.sqlString.escape(data[name]) + this.separator;
                 }
             }
         }
 
+        //TODO: use join
         if(query.length > 0) {
             query = query.substring(0, query.length - this.separator.length);
         }
@@ -97,7 +103,7 @@ class SQLHelper{
         for(var name in valuesData) {
 
             if(valuesData.hasOwnProperty(name)) {
-                query += "`" + name + "` = '" + valuesData[name] + "'"
+                query += this.sqlString.escapeId(name) + "= " +  this.sqlString.escape(valuesData[name])
                     + this.separator;
             }
         }
@@ -146,4 +152,5 @@ class SQLHelper{
 
         return query;
     }
+
 }

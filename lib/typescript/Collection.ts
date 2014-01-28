@@ -5,7 +5,7 @@
  */
 
 ///<reference path="Model.ts" />
-///<reference path="helpers/SQLHelper.ts" />
+///<reference path="helpers/SqlHelper.ts" />
 ///<reference path="interfaces/DriverInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
 ///<reference path="interfaces/JSONInterface.ts" />
@@ -113,14 +113,14 @@ module Light {
 
         /**
          * Get model at position from saved models list
-         * Throws error if none
          * @param {number} at Position
          * @returns {Model}
          */
         getModel(at: number): Model {
 
             if(this.models.length <= at) {
-                throw new Error("No model at " + at);
+                //throw new Error("No model at " + at);
+                return null;
             }
 
             return this.models[at];

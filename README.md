@@ -86,6 +86,21 @@ model.set({
 });
 ```
 
+Check attribute:
+```javascript
+model.has('name');
+```
+
+Clear attributes:
+```javascript
+model.clear();
+```
+
+Clear one attribute:
+```javascript
+model.clear('name');
+```
+
 Get custom row by sql:
 ```javascript
 AuthorCollection.findOne("SELECT COUNT(*) as `count` FROM `author` WHERE name = '" + author.name + "'", function(err, data) {
@@ -138,6 +153,15 @@ Delete, manual pk field name:
 model.remove({
 		pk: ['id']
 }, function(err, model) {});
+```
+
+If you do not want to have model in callback, add `false` as last argument to remove, update, create. Like this:
+```javascript
+model.update({
+	pkValue: {
+		id: 31
+	}
+}, function(err, model) {}, false);
 ```
 
 ###Licence

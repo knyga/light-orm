@@ -11,7 +11,7 @@
 ///<reference path="interfaces/UpdateOptionsInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
 ///<reference path="interfaces/JSONInterface.ts" />
-///<reference path="helpers/SQLHelper.ts" />
+///<reference path="helpers/SqlHelper.ts" />
 
 module Light {
     export class Model implements CrudInterface, GetSetInterface, ToStringInterface, JSONInterface {
@@ -109,17 +109,26 @@ module Light {
 
         /**
          * Get attribute by name
-         * Throws error if none
          * @param {string} name Name of attribute
          * @returns {any} Value of attribute
          */
         get(name: string) : any {
 
             if(!this.attributes.hasOwnProperty(name)) {
-                throw new Error("No attribute with name " + name);
+                //throw new Error("No attribute with name " + name);
+                return null;
             }
 
             return this.attributes[name];
+        }
+
+        /**
+         * Check presence of attribute
+         * @param name
+         * @returns {boolean}
+         */
+        has(name: string): boolean {
+            return this.attributes.hasOwnProperty(name);
         }
 
         /**
@@ -152,16 +161,33 @@ module Light {
             }
         }
 
+        clear(name?: string) {
+            if("undefined" === typeof name) {
+                this.attributes = {};
+            } else {
+
+                if(this.has(name)) {
+                    delete this.attributes[name];
+                }
+            }
+        }
+
         /**
          * Create model
          * @param {function} callback
+         * @param {boolean} isGetModel True, if sub request is needed
          */
-        create(callback?: (err?, rows?, fields?) => void) {
+        create(callback?: (err?, model?) => void, isGetModel?:boolean) {
             var that = this,
                 query = this.sqlHelper.buildInsert(this.tableName, this.attributes);
+
+            if("undefined" === typeof isGetModel) {
+                isGetModel = true;
+            }
+
             this.connector.query(query, (err, rows, fields) => {
 
-                if(/\([^,]+, [^,]+/.test(callback.toString())) {
+                if(isGetModel) {
                     var whereOptions = this.attributes;
                     query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
                     this.connector.query(query, (err, rows, fields) => {
@@ -201,12 +227,20 @@ module Light {
 
         /**
          * Update model
+         * @param {function} callback
+         * @param {boolean} isGetModel True, if sub request is needed
+         */
+        update(callback?: (err?, model?) => void, isGetModel?:boolean)
+
+        /**
+         * Update model
          * @param {UpdateOptionsInterface} options Object to select data {pk: [], pkValue: {}}
          * @param {function} callback
+         * @param {boolean} isGetModel True, if sub request is needed
          */
-        update(options: {}, callback?: (err?, model?) => void)
+        update(options: {}, callback?: (err?, model?) => void, isGetModel?:boolean)
 
-        update(input?: any, callback?: (err?, model?) => void) {
+        update(input?: any, callback?: any, isGetModel?:boolean) {
             var that = this,
                 whereOptions: {} = {},
                 options: UpdateOptionsInterface;
@@ -225,32 +259,40 @@ module Light {
 
             var query = this.sqlHelper.buildUpdate(this.tableName, this.attributes, whereOptions);
 
+            if("undefined" === typeof isGetModel) {
+
+                if("boolean" === typeof callback) {
+                    isGetModel = callback;
+                } else {
+                    isGetModel = true;
+                }
+            }
+
             this.connector.query(query, (err, rows, fields) => {
-                if("function" === typeof callback) {
 
-                    if(/\([^,]+, [^,]+/.test(callback.toString())) {
-                        query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
-                        this.connector.query(query, (err, rows, fields) => {
+                if(isGetModel) {
+                    var whereOptions = this.attributes;
+                    query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
+                    this.connector.query(query, (err, rows, fields) => {
 
-                            if("undefined" !== typeof rows && rows.length > 0) {
-                                var model = new Model(this.connector, this.tableName, rows[0]);
-                                that.set(model.attributes);
+                        if("undefined" !== typeof rows && rows.length > 0) {
+                            var model = new Model(this.connector, this.tableName, rows[0]);
+                            that.set(model.attributes);
 
-                                if("function" === typeof callback) {
-                                    callback(err, that);
-                                }
-                            } else {
-
-                                if("function" === typeof callback) {
-                                    callback(err);
-                                }
+                            if("function" === typeof callback) {
+                                callback(err, that);
                             }
-                        });
-                    } else {
+                        } else {
 
-                        if("function" === typeof callback) {
-                            callback(err);
+                            if("function" === typeof callback) {
+                                callback(err);
+                            }
                         }
+                    });
+                } else {
+
+                    if("function" === typeof callback) {
+                        callback(err);
                     }
                 }
             });
@@ -270,11 +312,19 @@ module Light {
         /**
          * Remove model
          * @param {UpdateOptionsInterface} options Object to select data {pk: [], pkValue: {}}
+         * @param {boolean} isGetModel True, if sub request is needed
          * @param callback
          */
-        remove(options: {}, callback?: (err?, model?) => void);
+        remove(options: {}, callback?: (err?, model?) => void, isGetModel?:boolean);
 
-        remove(input?: any, callback?: (err?, model?) => void) {
+        /**
+         * Remove model
+         * @param {function} callback
+         * @param {boolean} isGetModel True, if sub request is needed
+         */
+        remove(callback?: (err?, model?) => void, isGetModel?:boolean)
+
+        remove(input?: any, callback?: any, isGetModel?:boolean) {
             var that = this,
                 whereOptions: {} = {},
                 options: UpdateOptionsInterface;
@@ -293,32 +343,40 @@ module Light {
 
             var query = this.sqlHelper.buildDelete(this.tableName, whereOptions);
 
+            if("undefined" === typeof isGetModel) {
+
+                if("boolean" === typeof callback) {
+                    isGetModel = callback;
+                } else {
+                    isGetModel = true;
+                }
+            }
+
             this.connector.query(query, (err, rows, fields) => {
-                if("function" === typeof callback) {
 
-                    if(/\([^,]+, [^,]+/.test(callback.toString())) {
-                        query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
-                        this.connector.query(query, (err, rows, fields) => {
+                if(isGetModel) {
+                    var whereOptions = this.attributes;
+                    query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
+                    this.connector.query(query, (err, rows, fields) => {
 
-                            if("undefined" !== typeof rows && rows.length > 0) {
-                                var model = new Model(this.connector, this.tableName, rows[0]);
-                                that.set(model.attributes);
+                        if("undefined" !== typeof rows && rows.length > 0) {
+                            var model = new Model(this.connector, this.tableName, rows[0]);
+                            that.set(model.attributes);
 
-                                if("function" === typeof callback) {
-                                    callback(err, that);
-                                }
-                            } else {
-
-                                if("function" === typeof callback) {
-                                    callback(err);
-                                }
+                            if("function" === typeof callback) {
+                                callback(err, that);
                             }
-                        });
-                    } else {
+                        } else {
 
-                        if("function" === typeof callback) {
-                            callback(err);
+                            if("function" === typeof callback) {
+                                callback(err);
+                            }
                         }
+                    });
+                } else {
+
+                    if("function" === typeof callback) {
+                        callback(err);
                     }
                 }
             });
