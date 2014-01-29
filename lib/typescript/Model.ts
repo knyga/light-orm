@@ -5,7 +5,6 @@
  */
 
 ///<reference path="interfaces/CrudInterface.ts" />
-///<reference path="interfaces/DriverInterface.ts" />
 ///<reference path="interfaces/GetSetInterface.ts" />
 ///<reference path="interfaces/ModelEventInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
@@ -16,6 +15,7 @@
 ///<reference path="helpers/Clone.ts" />
 ///<reference path="helpers/Filter.ts" />
 ///<reference path="helpers/ObjectWrapper.ts" />
+///<reference path="Driver.ts" />
 
 module Light {
     export class Model implements CrudInterface, GetSetInterface, ToStringInterface, JSONInterface {
@@ -25,7 +25,6 @@ module Light {
 
         private pkAttr: string = 'id';
 
-        private connector: DriverInterface;
         private tableName: string;
         private data: {} = {};
         private dataNew: {} = {};
@@ -35,13 +34,11 @@ module Light {
 
         /**
          * Constructor
-         * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
          * @param {object} attributes Attributes, that will be setted during construction
          * @param {object} extensions New properties for current entity
          * @param tableName
          */
-        constructor(connector: DriverInterface, tableName: string, attributes?: {}, extensions?: any)
-        constructor(options: any, tableName: string, attributes?: {}, extensions?: any) {
+        constructor(options: any, attributes?: {}, extensions?: any) {
 
             if("undefined" !== typeof options && options.hasOwnProperty('connector')) {
 
@@ -49,8 +46,7 @@ module Light {
                     this[name] = options[name];
                 }
             } else {
-                this.connector = options;
-                this.tableName = tableName;
+                this.tableName = options;
 
                 if("undefined" !== typeof attributes) {
                     this.data = attributes;
@@ -200,15 +196,15 @@ module Light {
                 isGetModel = true;
             }
 
-            this.connector.query(query, (err, rows, fields) => {
+            Light.driver.query(query, (err, rows, fields) => {
 
                 if(isGetModel) {
                     var whereOptions = this.getAll();
                     query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
-                    this.connector.query(query, (err, rows, fields) => {
+                    Light.driver.query(query, (err, rows, fields) => {
 
                         if("undefined" !== typeof rows && rows.length > 0) {
-                            var model = new Model(this.connector, this.tableName, rows[0]);
+                            var model = new Model(this.tableName, rows[0]);
                             that.set(model.getAll());
 
                             if("function" === typeof callback) {
@@ -299,15 +295,15 @@ module Light {
                 }
             }
 
-            this.connector.query(query, (err, rows, fields) => {
+            Light.driver.query(query, (err, rows, fields) => {
 
                 if(isGetModel) {
                     var whereOptions = this.getAll();
                     query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
-                    this.connector.query(query, (err, rows, fields) => {
+                    Light.driver.query(query, (err, rows, fields) => {
 
                         if("undefined" !== typeof rows && rows.length > 0) {
-                            var model = new Model(this.connector, this.tableName, rows[0]);
+                            var model = new Model(this.tableName, rows[0]);
                             that.set(model.getAll());
 
                             if("function" === typeof callback) {
@@ -383,15 +379,15 @@ module Light {
                 }
             }
 
-            this.connector.query(query, (err, rows, fields) => {
+            Light.driver.query(query, (err, rows, fields) => {
 
                 if(isGetModel) {
                     var whereOptions = this.getAll();
                     query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
-                    this.connector.query(query, (err, rows, fields) => {
+                    Light.driver.query(query, (err, rows, fields) => {
 
                         if("undefined" !== typeof rows && rows.length > 0) {
-                            var model = new Model(this.connector, this.tableName, rows[0]);
+                            var model = new Model(this.tableName, rows[0]);
                             that.set(model.getAll());
 
                             if("function" === typeof callback) {

@@ -479,6 +479,14 @@ var SQLHelper = (function () {
     };
     return SQLHelper;
 })();
+///<reference path="interfaces/DriverInterface.ts" />
+var Light;
+(function (Light) {
+    /**
+    * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
+    */
+    Light.driver;
+})(Light || (Light = {}));
 /**
 * Interface to before/after event setters
 * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
@@ -490,7 +498,6 @@ var SQLHelper = (function () {
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 ///<reference path="interfaces/CrudInterface.ts" />
-///<reference path="interfaces/DriverInterface.ts" />
 ///<reference path="interfaces/GetSetInterface.ts" />
 ///<reference path="interfaces/ModelEventInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
@@ -500,10 +507,17 @@ var SQLHelper = (function () {
 ///<reference path="helpers/Clone.ts" />
 ///<reference path="helpers/Filter.ts" />
 ///<reference path="helpers/ObjectWrapper.ts" />
+///<reference path="Driver.ts" />
 var Light;
 (function (Light) {
     var Model = (function () {
-        function Model(options, tableName, attributes, extensions) {
+        /**
+        * Constructor
+        * @param {object} attributes Attributes, that will be setted during construction
+        * @param {object} extensions New properties for current entity
+        * @param tableName
+        */
+        function Model(options, attributes, extensions) {
             //        public static CREATE = 'create';
             //        public static UPDATE = 'update';
             //        public static REMOVE = 'remove';
@@ -515,8 +529,7 @@ var Light;
                     this[name] = options[name];
                 }
             } else {
-                this.connector = options;
-                this.tableName = tableName;
+                this.tableName = options;
 
                 if ("undefined" !== typeof attributes) {
                     this.data = attributes;
@@ -635,13 +648,13 @@ var Light;
                 isGetModel = true;
             }
 
-            this.connector.query(query, function (err, rows, fields) {
+            Light.driver.query(query, function (err, rows, fields) {
                 if (isGetModel) {
                     var whereOptions = _this.getAll();
                     query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
-                    _this.connector.query(query, function (err, rows, fields) {
+                    Light.driver.query(query, function (err, rows, fields) {
                         if ("undefined" !== typeof rows && rows.length > 0) {
-                            var model = new Model(_this.connector, _this.tableName, rows[0]);
+                            var model = new Model(_this.tableName, rows[0]);
                             that.set(model.getAll());
 
                             if ("function" === typeof callback) {
@@ -704,13 +717,13 @@ var Light;
                 }
             }
 
-            this.connector.query(query, function (err, rows, fields) {
+            Light.driver.query(query, function (err, rows, fields) {
                 if (isGetModel) {
                     var whereOptions = _this.getAll();
                     query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
-                    _this.connector.query(query, function (err, rows, fields) {
+                    Light.driver.query(query, function (err, rows, fields) {
                         if ("undefined" !== typeof rows && rows.length > 0) {
-                            var model = new Model(_this.connector, _this.tableName, rows[0]);
+                            var model = new Model(_this.tableName, rows[0]);
                             that.set(model.getAll());
 
                             if ("function" === typeof callback) {
@@ -760,13 +773,13 @@ var Light;
                 }
             }
 
-            this.connector.query(query, function (err, rows, fields) {
+            Light.driver.query(query, function (err, rows, fields) {
                 if (isGetModel) {
                     var whereOptions = _this.getAll();
                     query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
-                    _this.connector.query(query, function (err, rows, fields) {
+                    Light.driver.query(query, function (err, rows, fields) {
                         if ("undefined" !== typeof rows && rows.length > 0) {
-                            var model = new Model(_this.connector, _this.tableName, rows[0]);
+                            var model = new Model(_this.tableName, rows[0]);
                             that.set(model.getAll());
 
                             if ("function" === typeof callback) {
@@ -815,36 +828,37 @@ var Light;
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 ///<reference path="Model.ts" />
+///<reference path="Driver.ts" />
 ///<reference path="helpers/Sql/SQLHelper.ts" />
-///<reference path="interfaces/DriverInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
 ///<reference path="interfaces/ToJSONInterface.ts" />
 var Light;
 (function (Light) {
     var Collection = (function () {
-        function Collection(options, tableName, extensions) {
+        function Collection(options, extensions) {
             this.models = [];
-            if (Object.prototype.toString.call(options) === '[object Array]') {
-                if (options.length > 0 && options[0] instanceof Light.Model) {
-                    this.models = options;
-                } else {
-                    for (var i = 0; i < options.length; i++) {
-                        this.createModel(options[i]);
+            if ("string" === typeof options) {
+                this.tableName = options;
+
+                if ("undefined" !== typeof extensions) {
+                    for (var name in extensions) {
+                        this[name] = extensions[name];
                     }
                 }
-            } else {
-                if (options.hasOwnProperty('connector')) {
-                    for (var name in options) {
-                        this[name] = options[name];
+            }
+
+            if ("object" === typeof options) {
+                if (Object.prototype.toString.call(options) === '[object Array]') {
+                    if (options.length > 0 && options[0] instanceof Light.Model) {
+                        this.models = options;
+                    } else {
+                        for (var i = 0; i < options.length; i++) {
+                            this.createModel(options[i]);
+                        }
                     }
                 } else {
-                    this.connector = options;
-                    this.tableName = tableName;
-
-                    if ("undefined" !== typeof extensions) {
-                        for (var name in extensions) {
-                            this[name] = extensions[name];
-                        }
+                    for (var name in options) {
+                        this[name] = options[name];
                     }
                 }
             }
@@ -864,7 +878,7 @@ var Light;
                 add = true;
             }
 
-            model = new Light.Model(this.connector, this.tableName, data, this.modelExtension);
+            model = new Light.Model(this.tableName, data, this.modelExtension);
 
             if (add) {
                 this.models.push(model);
@@ -905,7 +919,7 @@ var Light;
                 query = this.sqlHelper.buildSelect(this.tableName, search);
             }
 
-            this.connector.query(query, function (err, rows, fields) {
+            Light.driver.query(query, function (err, rows, fields) {
                 if (err) {
                     if ("function" === typeof callback) {
                         callback(err);
@@ -914,7 +928,7 @@ var Light;
                     var models = [];
 
                     for (var i = 0; i < rows.length; i++) {
-                        var model = new Light.Model(_this.connector, _this.tableName, rows[i], _this.modelExtension);
+                        var model = new Light.Model(_this.tableName, rows[i], _this.modelExtension);
                         models.push(model);
                     }
 

@@ -1,16 +1,15 @@
 var mysql = require('mysql'),
 	lightOrm = require('light-orm');
 
-var connection = mysql.createConnection(require('./connection.json'));
-
-connection.connect();
+lightOrm.driver = mysql.createConnection(require('./connection.json'));
+lightOrm.driver.connect();
 
 var author = {
 	name: "Oleksandr Knyga",
 	description: "Rational light ORM"
 };
 
-var AuthorCollection = new lightOrm.Collection(connection, 'author');
+var AuthorCollection = new lightOrm.Collection('author');
 
 //Select by object
 AuthorCollection.findOne({

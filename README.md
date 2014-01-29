@@ -23,13 +23,13 @@ Example connection (mysql):
 var mysql = require('mysql'),
 	lightOrm = require('light-orm');
 
-var connection = mysql.createConnection(require('./connection.json'));
-connection.connect();
+lightOrm.driver = mysql.createConnection(require('./connection.json'));
+lightOrm.driver.connect();
 ```
 
 Create collection for table name `author`:
 ```javascript
-var AuthorCollection = new lightOrm.Collection(connection, 'author');
+var AuthorCollection = new lightOrm.Collection('author');
 ```
 
 Find one model:

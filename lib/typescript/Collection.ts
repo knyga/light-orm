@@ -5,56 +5,54 @@
  */
 
 ///<reference path="Model.ts" />
+///<reference path="Driver.ts" />
 ///<reference path="helpers/Sql/SQLHelper.ts" />
-///<reference path="interfaces/DriverInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
 ///<reference path="interfaces/ToJSONInterface.ts" />
 
 module Light {
     export class Collection implements ToStringInterface, JSONInterface {
         private tableName: string;
-        private connector: DriverInterface;
         private sqlHelper: SQLHelper;
         private models: Model[] = [];
         private modelExtension: any;
 
         /**
          * Constructor
-         * @param {object} connector Connection object to DB with method query(query: string, handler: (err, rows, fields) => void)
          * @param {object} extensions New properties for current entity
          * @param tableName
          */
-        constructor(connector: DriverInterface, tableName?: string, extensions?: any)
+        constructor(tableName: string, extensions?: any)
         constructor(options: any)
         constructor(models: Model[])
-        constructor(options: any, tableName?: string, extensions?: any) {
+        constructor(options: any, extensions?: any) {
 
-            if(Object.prototype.toString.call(options) === '[object Array]') {
+            if("string" === typeof options) {
+                this.tableName = options;
 
-                if(options.length > 0 && options[0] instanceof Model) {
-                    this.models = options;
-                } else {
+                if("undefined" !== typeof extensions) {
 
-                    for(var i = 0; i < options.length; i++) {
-                        this.createModel(options[i]);
+                    for(var name in extensions) {
+                        this[name] = extensions[name];
                     }
                 }
-            } else {
+            }
 
-                if(options.hasOwnProperty('connector')) {
+            if("object" === typeof options) {
 
-                    for(var name in options) {
-                        this[name] = options[name];
+                if(Object.prototype.toString.call(options) === '[object Array]') {
+
+                    if(options.length > 0 && options[0] instanceof Model) {
+                        this.models = options;
+                    } else {
+
+                        for(var i = 0; i < options.length; i++) {
+                            this.createModel(options[i]);
+                        }
                     }
                 } else {
-                    this.connector = options;
-                    this.tableName = tableName;
-
-                    if("undefined" !== typeof extensions) {
-
-                        for(var name in extensions) {
-                            this[name] = extensions[name];
-                        }
+                    for(var name in options) {
+                        this[name] = options[name];
                     }
                 }
             }
@@ -94,7 +92,7 @@ module Light {
                 add = true;
             }
 
-            model = new Model(this.connector, this.tableName, data, this.modelExtension);
+            model = new Model(this.tableName, data, this.modelExtension);
 
             if(add) {
                 this.models.push(model);
@@ -149,7 +147,7 @@ module Light {
                 query = this.sqlHelper.buildSelect(this.tableName, search);
             }
 
-            this.connector.query(query, (err, rows, fields) => {
+            Light.driver.query(query, (err, rows, fields) => {
 
                 if(err) {
 
@@ -160,7 +158,7 @@ module Light {
                     var models: Model[] = [];
 
                     for(var i = 0; i<rows.length; i++) {
-                        var model = new Model(this.connector, this.tableName, rows[i], this.modelExtension);
+                        var model = new Model(this.tableName, rows[i], this.modelExtension);
                         models.push(model);
                     }
 
