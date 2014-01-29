@@ -14,14 +14,17 @@ class Clone {
 
     clone(): any {
 
-        if (null == this.data || "object" != typeof this.data) {
+        if (null === this.data || "object" !== typeof this.data) {
             return this.data;
         }
 
-        var copy = this.data.constructor();
+        var copy = this.data.constructor() || {};
 
         for (var attr in this.data) {
-            if (this.data.hasOwnProperty(attr)) copy[attr] = this.data[attr];
+
+            if (this.data.hasOwnProperty(attr)) {
+                copy[attr] = this.data[attr];
+            }
         }
 
         return copy;

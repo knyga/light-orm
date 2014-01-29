@@ -53,7 +53,7 @@ module Light {
                 this.tableName = tableName;
 
                 if("undefined" !== typeof attributes) {
-                    this.set(attributes);
+                    this.data = attributes;
                 }
 
                 if("undefined" !== typeof extensions) {
@@ -72,15 +72,15 @@ module Light {
          * @returns {object}
          */
         getAll(): {} {
-            var localData:{} = new Clone(this.data);
+            var localData:{} = new Clone(this.data) || {};
 
-            for(var name in this.data) {
+            for(var name in this.dataNew) {
 
-                if(this.data.hasOwnProperty(name) &&
+                if(this.dataNew.hasOwnProperty(name) &&
                     (!localData.hasOwnProperty(name) ||
-                        localData[name] != this.data[name])
+                        localData[name] != this.dataNew[name])
                     ) {
-                    localData[name] = this.data[name]
+                    localData[name] = this.dataNew[name];
                 }
             }
 
@@ -126,30 +126,48 @@ module Light {
         /**
          * Set attributes
          * @param {object} options New attributes {name: value}
+         * @param {boolean} isNew If true, than data goes to this.dataNew, otherwise to this.data
          */
-        set(options: {})
+        set(options: {}, isNew?:boolean)
 
         /**
          * Set attribute
          * @param {string} name Name of attribute
          * @param {any} value Value of attribute
+         * @param {boolean} isNew If true, than data goes to this.dataNew, otherwise to this.data
          */
-        set(name: string, value: any)
+        set(name: string, value: any, isNew?:boolean)
 
-        set(arg1: any, arg2?: any) {
+        set(arg1: any, arg2?: any, isNew?:boolean) {
 
             if("string" === typeof arg1 && "undefined" !== typeof arg2) {
-                this.dataNew[arg1] = arg2;
+
+                if("undefined" === typeof isNew || isNew) {
+                    this.dataNew[arg1] = arg2;
+                } else {
+                    this.data[arg1] = arg2;
+                }
             }
 
             if("object" === typeof arg1) {
 
-                for(var name in arg1) {
+                if("boolean" === typeof arg2 && arg2) {
+                    for(var name in arg1) {
 
-                    if(arg1.hasOwnProperty(name)) {
-                        this.dataNew[name] = arg1[name];
+                        if(arg1.hasOwnProperty(name)) {
+                            this.dataNew[name] = arg1[name];
+                        }
+                    }
+                } else {
+                    for(var name in arg1) {
+
+                        if(arg1.hasOwnProperty(name)) {
+                            this.data[name] = arg1[name];
+                        }
                     }
                 }
+
+
             }
         }
 
@@ -254,7 +272,10 @@ module Light {
                 whereOptions = new Where(options).getBlock(this.getAll());
             }
 
-            var updateData = new Filter(this.dataNew).difference(this.data);
+            var updateData = new Clone(this.dataNew);
+
+            this.data = this.getAll();
+            this.dataNew = {};
 
             if(new ObjectWrapper(updateData).size() < 1) {
 
@@ -266,7 +287,7 @@ module Light {
             }
 
             var query = this.sqlHelper.buildUpdate(this.tableName,
-                new Filter(this.dataNew).difference(this.data),
+                updateData,
                 whereOptions);
 
             if("undefined" === typeof isGetModel) {

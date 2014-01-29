@@ -39,15 +39,16 @@ var Clone = (function () {
         return this.clone();
     }
     Clone.prototype.clone = function () {
-        if (null == this.data || "object" != typeof this.data) {
+        if (null === this.data || "object" !== typeof this.data) {
             return this.data;
         }
 
-        var copy = this.data.constructor();
+        var copy = this.data.constructor() || {};
 
         for (var attr in this.data) {
-            if (this.data.hasOwnProperty(attr))
+            if (this.data.hasOwnProperty(attr)) {
                 copy[attr] = this.data[attr];
+            }
         }
 
         return copy;
@@ -87,7 +88,7 @@ var Filter = (function () {
     * @param data2
     * @returns {{}}
     */
-    Filter.prototype.difference = function (data2) {
+    Filter.prototype.minus = function (data2) {
         var newData = {};
 
         for (var name in this.data) {
@@ -518,7 +519,7 @@ var Light;
                 this.tableName = tableName;
 
                 if ("undefined" !== typeof attributes) {
-                    this.set(attributes);
+                    this.data = attributes;
                 }
 
                 if ("undefined" !== typeof extensions) {
@@ -535,11 +536,11 @@ var Light;
         * @returns {object}
         */
         Model.prototype.getAll = function () {
-            var localData = new Clone(this.data);
+            var localData = new Clone(this.data) || {};
 
-            for (var name in this.data) {
-                if (this.data.hasOwnProperty(name) && (!localData.hasOwnProperty(name) || localData[name] != this.data[name])) {
-                    localData[name] = this.data[name];
+            for (var name in this.dataNew) {
+                if (this.dataNew.hasOwnProperty(name) && (!localData.hasOwnProperty(name) || localData[name] != this.dataNew[name])) {
+                    localData[name] = this.dataNew[name];
                 }
             }
 
@@ -580,15 +581,27 @@ var Light;
             return false;
         };
 
-        Model.prototype.set = function (arg1, arg2) {
+        Model.prototype.set = function (arg1, arg2, isNew) {
             if ("string" === typeof arg1 && "undefined" !== typeof arg2) {
-                this.dataNew[arg1] = arg2;
+                if ("undefined" === typeof isNew || isNew) {
+                    this.dataNew[arg1] = arg2;
+                } else {
+                    this.data[arg1] = arg2;
+                }
             }
 
             if ("object" === typeof arg1) {
-                for (var name in arg1) {
-                    if (arg1.hasOwnProperty(name)) {
-                        this.dataNew[name] = arg1[name];
+                if ("boolean" === typeof arg2 && arg2) {
+                    for (var name in arg1) {
+                        if (arg1.hasOwnProperty(name)) {
+                            this.dataNew[name] = arg1[name];
+                        }
+                    }
+                } else {
+                    for (var name in arg1) {
+                        if (arg1.hasOwnProperty(name)) {
+                            this.data[name] = arg1[name];
+                        }
                     }
                 }
             }
@@ -668,7 +681,10 @@ var Light;
                 whereOptions = new Where(options).getBlock(this.getAll());
             }
 
-            var updateData = new Filter(this.dataNew).difference(this.data);
+            var updateData = new Clone(this.dataNew);
+
+            this.data = this.getAll();
+            this.dataNew = {};
 
             if (new ObjectWrapper(updateData).size() < 1) {
                 if ("function" === typeof callback) {
@@ -678,7 +694,7 @@ var Light;
                 return;
             }
 
-            var query = this.sqlHelper.buildUpdate(this.tableName, new Filter(this.dataNew).difference(this.data), whereOptions);
+            var query = this.sqlHelper.buildUpdate(this.tableName, updateData, whereOptions);
 
             if ("undefined" === typeof isGetModel) {
                 if ("boolean" === typeof callback) {

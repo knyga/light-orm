@@ -37,7 +37,7 @@ class Filter {
      * @param data2
      * @returns {{}}
      */
-    difference(data2: {}) {
+    minus(data2: {}) {
         var newData: {} = {};
 
         for(var name in this.data) {
