@@ -5,10 +5,10 @@
  */
 
 ///<reference path="Model.ts" />
-///<reference path="helpers/SqlHelper.ts" />
+///<reference path="helpers/Sql/SQLHelper.ts" />
 ///<reference path="interfaces/DriverInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
-///<reference path="interfaces/JSONInterface.ts" />
+///<reference path="interfaces/ToJSONInterface.ts" />
 
 module Light {
     export class Collection implements ToStringInterface, JSONInterface {

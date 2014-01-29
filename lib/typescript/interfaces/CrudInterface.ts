@@ -4,14 +4,12 @@
  * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
  */
 
-///<reference path="UpdateOptionsInterface.ts" />
-
 interface CrudInterface {
     create();
 
     update();
-    update(options: UpdateOptionsInterface);
+    update(options: {});
 
     remove();
-    remove(options: UpdateOptionsInterface);
+    remove(options: {});
 }

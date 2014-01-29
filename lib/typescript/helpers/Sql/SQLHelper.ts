@@ -1,5 +1,5 @@
 /**
- * Wrapper on basic search operations
+ * Provides user with basic SQL methods
  * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
  * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
  */
@@ -92,7 +92,7 @@ class SQLHelper{
     /**
      * Create UPDATE SQL query
      * @param {string} tableName
-     * @param {string} valuesData Fieldnames and values that should be updated
+     * @param {string} valuesData Field names and values that should be updated
      * @param {object} whereData Conditions for WHERE block in query
      * @returns {string} Query
      */

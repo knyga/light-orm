@@ -8,10 +8,14 @@
 ///<reference path="interfaces/DriverInterface.ts" />
 ///<reference path="interfaces/GetSetInterface.ts" />
 ///<reference path="interfaces/ModelEventInterface.ts" />
-///<reference path="interfaces/UpdateOptionsInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
-///<reference path="interfaces/JSONInterface.ts" />
-///<reference path="helpers/SqlHelper.ts" />
+///<reference path="interfaces/ToJSONInterface.ts" />
+
+///<reference path="helpers/Sql/SQLHelper.ts" />
+///<reference path="helpers/Where.ts" />
+///<reference path="helpers/Clone.ts" />
+///<reference path="helpers/Filter.ts" />
+///<reference path="helpers/ObjectWrapper.ts" />
 
 module Light {
     export class Model implements CrudInterface, GetSetInterface, ToStringInterface, JSONInterface {
@@ -23,7 +27,8 @@ module Light {
 
         private connector: DriverInterface;
         private tableName: string;
-        private attributes: {} = {};
+        private data: {} = {};
+        private dataNew: {} = {};
 //        private beforeList: { (type: string): void; } [] = [];
 //        private afterList: { (type: string): void; } [] = [];
         private sqlHelper: SQLHelper;
@@ -62,49 +67,24 @@ module Light {
             this.sqlHelper = SQLHelper.getEntity();
         }
 
-//        private callBeforeHandlers(type: string) {
-//            for(var i=0;i<this.beforeList.length;i++) {
-//                this.beforeList[i](type);
-//            }
-//        }
-//
-//        private callAfterHandlers(type: string) {
-//            for(var i=0;i<this.afterList.length;i++) {
-//                this.afterList[i](type);
-//            }
-//        }
-//        before(handler: (type: string) => void) {
-//            this.beforeList.push(handler);
-//        }
-//
-//        after(handler: (type: string) => void) {
-//            this.afterList.push(handler);
-//        }
-
-        private updateOptionsToObject(options: UpdateOptionsInterface): {} {
-            var obj: {} = {};
-
-            if("undefined" !== typeof options.pk) {
-
-                for(var i = 0; i < options.pk.length; i++) {
-
-                    if(this.attributes.hasOwnProperty(options.pk[i])) {
-                        obj[options.pk[i]] = this.attributes[options.pk[i]];
-                    }
-                }
-            } else {
-                obj = options.pkValue;
-            }
-
-            return obj;
-        }
-
         /**
-         * Get All attributes
+         * Get All attributes, combines dataNew and data
          * @returns {object}
          */
-        getAll() {
-            return this.attributes;
+        getAll(): {} {
+            var localData:{} = new Clone(this.data);
+
+            for(var name in this.data) {
+
+                if(this.data.hasOwnProperty(name) &&
+                    (!localData.hasOwnProperty(name) ||
+                        localData[name] != this.data[name])
+                    ) {
+                    localData[name] = this.data[name]
+                }
+            }
+
+            return localData;
         }
 
         /**
@@ -114,12 +94,15 @@ module Light {
          */
         get(name: string) : any {
 
-            if(!this.attributes.hasOwnProperty(name)) {
-                //throw new Error("No attribute with name " + name);
-                return null;
+            if(this.dataNew.hasOwnProperty(name)) {
+                return this.dataNew[name];
             }
 
-            return this.attributes[name];
+            if(this.data.hasOwnProperty(name)) {
+                return this.data[name];
+            }
+
+            return null;
         }
 
         /**
@@ -128,7 +111,16 @@ module Light {
          * @returns {boolean}
          */
         has(name: string): boolean {
-            return this.attributes.hasOwnProperty(name);
+
+            if(this.dataNew.hasOwnProperty(name)) {
+                return true;
+            }
+
+            if(this.data.hasOwnProperty(name)) {
+                return true;
+            }
+
+            return false;
         }
 
         /**
@@ -147,7 +139,7 @@ module Light {
         set(arg1: any, arg2?: any) {
 
             if("string" === typeof arg1 && "undefined" !== typeof arg2) {
-                this.attributes[arg1] = arg2;
+                this.dataNew[arg1] = arg2;
             }
 
             if("object" === typeof arg1) {
@@ -155,7 +147,7 @@ module Light {
                 for(var name in arg1) {
 
                     if(arg1.hasOwnProperty(name)) {
-                        this.attributes[name] = arg1[name];
+                        this.dataNew[name] = arg1[name];
                     }
                 }
             }
@@ -163,11 +155,16 @@ module Light {
 
         clear(name?: string) {
             if("undefined" === typeof name) {
-                this.attributes = {};
+                this.dataNew = {};
+                this.data = {};
             } else {
 
-                if(this.has(name)) {
-                    delete this.attributes[name];
+                if(this.dataNew.hasOwnProperty(name)) {
+                    delete this.dataNew[name];
+                }
+
+                if(this.data.hasOwnProperty(name)) {
+                    delete this.data[name];
                 }
             }
         }
@@ -179,7 +176,7 @@ module Light {
          */
         create(callback?: (err?, model?) => void, isGetModel?:boolean) {
             var that = this,
-                query = this.sqlHelper.buildInsert(this.tableName, this.attributes);
+                query = this.sqlHelper.buildInsert(this.tableName, this.getAll());
 
             if("undefined" === typeof isGetModel) {
                 isGetModel = true;
@@ -188,13 +185,13 @@ module Light {
             this.connector.query(query, (err, rows, fields) => {
 
                 if(isGetModel) {
-                    var whereOptions = this.attributes;
+                    var whereOptions = this.getAll();
                     query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
                     this.connector.query(query, (err, rows, fields) => {
 
                         if("undefined" !== typeof rows && rows.length > 0) {
                             var model = new Model(this.connector, this.tableName, rows[0]);
-                            that.set(model.attributes);
+                            that.set(model.getAll());
 
                             if("function" === typeof callback) {
                                 callback(err, that);
@@ -243,7 +240,7 @@ module Light {
         update(input?: any, callback?: any, isGetModel?:boolean) {
             var that = this,
                 whereOptions: {} = {},
-                options: UpdateOptionsInterface;
+                options: Where;
 
             if("function" === typeof input) {
                 callback = input;
@@ -252,12 +249,25 @@ module Light {
             }
 
             if("undefined" === typeof options) {
-                whereOptions[this.pkAttr] = this.attributes[this.pkAttr];
+                whereOptions[this.pkAttr] = this.get(this.pkAttr);
             } else {
-                whereOptions = this.updateOptionsToObject(options);
+                whereOptions = new Where(options).getBlock(this.getAll());
             }
 
-            var query = this.sqlHelper.buildUpdate(this.tableName, this.attributes, whereOptions);
+            var updateData = new Filter(this.dataNew).difference(this.data);
+
+            if(new ObjectWrapper(updateData).size() < 1) {
+
+                if("function" === typeof callback) {
+                    callback("Nothing to update");
+                }
+
+                return;
+            }
+
+            var query = this.sqlHelper.buildUpdate(this.tableName,
+                new Filter(this.dataNew).difference(this.data),
+                whereOptions);
 
             if("undefined" === typeof isGetModel) {
 
@@ -271,13 +281,13 @@ module Light {
             this.connector.query(query, (err, rows, fields) => {
 
                 if(isGetModel) {
-                    var whereOptions = this.attributes;
+                    var whereOptions = this.getAll();
                     query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
                     this.connector.query(query, (err, rows, fields) => {
 
                         if("undefined" !== typeof rows && rows.length > 0) {
                             var model = new Model(this.connector, this.tableName, rows[0]);
-                            that.set(model.attributes);
+                            that.set(model.getAll());
 
                             if("function" === typeof callback) {
                                 callback(err, that);
@@ -327,7 +337,7 @@ module Light {
         remove(input?: any, callback?: any, isGetModel?:boolean) {
             var that = this,
                 whereOptions: {} = {},
-                options: UpdateOptionsInterface;
+                options: Where;
 
             if("function" === typeof input) {
                 callback = input;
@@ -336,9 +346,9 @@ module Light {
             }
 
             if("undefined" === typeof options) {
-                whereOptions[this.pkAttr] = this.attributes[this.pkAttr];
+                whereOptions[this.pkAttr] = this.get(this.pkAttr);
             } else {
-                whereOptions = this.updateOptionsToObject(options);
+                whereOptions = new Where(options).getBlock(this.getAll());
             }
 
             var query = this.sqlHelper.buildDelete(this.tableName, whereOptions);
@@ -355,13 +365,13 @@ module Light {
             this.connector.query(query, (err, rows, fields) => {
 
                 if(isGetModel) {
-                    var whereOptions = this.attributes;
+                    var whereOptions = this.getAll();
                     query = this.sqlHelper.buildSelect(this.tableName, whereOptions);
                     this.connector.query(query, (err, rows, fields) => {
 
                         if("undefined" !== typeof rows && rows.length > 0) {
                             var model = new Model(this.connector, this.tableName, rows[0]);
-                            that.set(model.attributes);
+                            that.set(model.getAll());
 
                             if("function" === typeof callback) {
                                 callback(err, that);
@@ -404,7 +414,7 @@ module Light {
          * @returns {object}
          */
         toJSON(): any {
-            return this.attributes;
+            return this.getAll();
         }
 
     }

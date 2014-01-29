@@ -1,14 +1,8 @@
 /**
-* Interface to update/delete selection options
-* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
-* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
-*/
-/**
 * Interface to CRUD operations
 * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
-///<reference path="UpdateOptionsInterface.ts" />
 /**
 * Interface to Driver
 * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
@@ -20,10 +14,151 @@
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 /**
-* Interface to before/after event setters
+* Interface to JSON transformation
 * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
+/**
+* Interface to String transformation
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
+*/
+/**
+* Interface to where block
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
+*/
+/**
+* Clones object
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
+*/
+var Clone = (function () {
+    function Clone(data) {
+        this.data = data;
+        return this.clone();
+    }
+    Clone.prototype.clone = function () {
+        if (null == this.data || "object" != typeof this.data) {
+            return this.data;
+        }
+
+        var copy = this.data.constructor();
+
+        for (var attr in this.data) {
+            if (this.data.hasOwnProperty(attr))
+                copy[attr] = this.data[attr];
+        }
+
+        return copy;
+    };
+    return Clone;
+})();
+/**
+* Filter object on property names
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
+*/
+var Filter = (function () {
+    /**
+    * @param {object} data Object, that should be filtered
+    */
+    function Filter(data) {
+        this.data = data;
+    }
+    /**
+    * @param Names of properties, that should stay in object
+    * @returns {{}}
+    */
+    Filter.prototype.filter = function (names) {
+        var newData = {};
+
+        for (var name in this.data) {
+            if (this.data.hasOwnProperty(name)) {
+                newData[name] = this.data[name];
+            }
+        }
+
+        return newData;
+    };
+
+    /**
+    * this.data MINUS data
+    * @param data2
+    * @returns {{}}
+    */
+    Filter.prototype.difference = function (data2) {
+        var newData = {};
+
+        for (var name in this.data) {
+            if (this.data.hasOwnProperty(name) && !data2.hasOwnProperty(name)) {
+                newData[name] = this.data[name];
+            }
+        }
+
+        return newData;
+    };
+    return Filter;
+})();
+/**
+* Adds some functionality to object or array
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
+*/
+var ObjectWrapper = (function () {
+    function ObjectWrapper(data) {
+        this.data = data;
+    }
+    ObjectWrapper.prototype.size = function () {
+        if (this.isArray()) {
+            return this.data.length;
+        } else {
+            return Object.keys(this.data).length;
+        }
+    };
+
+    ObjectWrapper.prototype.isArray = function () {
+        if (Object.prototype.toString.call(this.data) === '[object Array]') {
+            return true;
+        } else {
+            return false;
+        }
+    };
+    return ObjectWrapper;
+})();
+/**
+* Interface to update/delete selection options
+* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
+* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
+*/
+///<reference path="../interfaces/WhereInterface.ts" />
+var Where = (function () {
+    function Where(where) {
+        this.where = where.where;
+        this.whereValue = where.whereValue;
+    }
+    /**
+    * Generate object with data, that will be used for filtering in WHERE block
+    * @param data Data from Model
+    * @returns {{}}
+    */
+    Where.prototype.getBlock = function (data) {
+        var obj = {};
+
+        if ("undefined" !== typeof this.where) {
+            for (var i = 0; i < this.where.length; i++) {
+                if (data.hasOwnProperty(this.where[i])) {
+                    obj[this.where[i]] = data[this.where[i]];
+                }
+            }
+        } else {
+            obj = this.whereValue;
+        }
+
+        return obj;
+    };
+    return Where;
+})();
 /**
 * Escape string methods
 * https://github.com/felixge/node-mysql/blob/master/lib/protocol/SqlString.js
@@ -197,7 +332,7 @@ var SqlString = (function () {
     return SqlString;
 })();
 /**
-* Wrapper on basic search operations
+* Provides user with basic SQL methods
 * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
@@ -284,7 +419,7 @@ var SQLHelper = (function () {
     /**
     * Create UPDATE SQL query
     * @param {string} tableName
-    * @param {string} valuesData Fieldnames and values that should be updated
+    * @param {string} valuesData Field names and values that should be updated
     * @param {object} whereData Conditions for WHERE block in query
     * @returns {string} Query
     */
@@ -344,12 +479,7 @@ var SQLHelper = (function () {
     return SQLHelper;
 })();
 /**
-* Interface to String transformation
-* @author Oleksandr Knyga <oleksandrknyga@gmail.com>
-* @license Apache License 2.0 - See file 'LICENSE.md' in this project.
-*/
-/**
-* Interface to JSON transformation
+* Interface to before/after event setters
 * @author Oleksandr Knyga <oleksandrknyga@gmail.com>
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
@@ -362,10 +492,13 @@ var SQLHelper = (function () {
 ///<reference path="interfaces/DriverInterface.ts" />
 ///<reference path="interfaces/GetSetInterface.ts" />
 ///<reference path="interfaces/ModelEventInterface.ts" />
-///<reference path="interfaces/UpdateOptionsInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
-///<reference path="interfaces/JSONInterface.ts" />
-///<reference path="helpers/SqlHelper.ts" />
+///<reference path="interfaces/ToJSONInterface.ts" />
+///<reference path="helpers/Sql/SQLHelper.ts" />
+///<reference path="helpers/Where.ts" />
+///<reference path="helpers/Clone.ts" />
+///<reference path="helpers/Filter.ts" />
+///<reference path="helpers/ObjectWrapper.ts" />
 var Light;
 (function (Light) {
     var Model = (function () {
@@ -374,7 +507,8 @@ var Light;
             //        public static UPDATE = 'update';
             //        public static REMOVE = 'remove';
             this.pkAttr = 'id';
-            this.attributes = {};
+            this.data = {};
+            this.dataNew = {};
             if ("undefined" !== typeof options && options.hasOwnProperty('connector')) {
                 for (var name in options) {
                     this[name] = options[name];
@@ -396,46 +530,20 @@ var Light;
 
             this.sqlHelper = SQLHelper.getEntity();
         }
-        //        private callBeforeHandlers(type: string) {
-        //            for(var i=0;i<this.beforeList.length;i++) {
-        //                this.beforeList[i](type);
-        //            }
-        //        }
-        //
-        //        private callAfterHandlers(type: string) {
-        //            for(var i=0;i<this.afterList.length;i++) {
-        //                this.afterList[i](type);
-        //            }
-        //        }
-        //        before(handler: (type: string) => void) {
-        //            this.beforeList.push(handler);
-        //        }
-        //
-        //        after(handler: (type: string) => void) {
-        //            this.afterList.push(handler);
-        //        }
-        Model.prototype.updateOptionsToObject = function (options) {
-            var obj = {};
-
-            if ("undefined" !== typeof options.pk) {
-                for (var i = 0; i < options.pk.length; i++) {
-                    if (this.attributes.hasOwnProperty(options.pk[i])) {
-                        obj[options.pk[i]] = this.attributes[options.pk[i]];
-                    }
-                }
-            } else {
-                obj = options.pkValue;
-            }
-
-            return obj;
-        };
-
         /**
-        * Get All attributes
+        * Get All attributes, combines dataNew and data
         * @returns {object}
         */
         Model.prototype.getAll = function () {
-            return this.attributes;
+            var localData = new Clone(this.data);
+
+            for (var name in this.data) {
+                if (this.data.hasOwnProperty(name) && (!localData.hasOwnProperty(name) || localData[name] != this.data[name])) {
+                    localData[name] = this.data[name];
+                }
+            }
+
+            return localData;
         };
 
         /**
@@ -444,12 +552,15 @@ var Light;
         * @returns {any} Value of attribute
         */
         Model.prototype.get = function (name) {
-            if (!this.attributes.hasOwnProperty(name)) {
-                //throw new Error("No attribute with name " + name);
-                return null;
+            if (this.dataNew.hasOwnProperty(name)) {
+                return this.dataNew[name];
             }
 
-            return this.attributes[name];
+            if (this.data.hasOwnProperty(name)) {
+                return this.data[name];
+            }
+
+            return null;
         };
 
         /**
@@ -458,18 +569,26 @@ var Light;
         * @returns {boolean}
         */
         Model.prototype.has = function (name) {
-            return this.attributes.hasOwnProperty(name);
+            if (this.dataNew.hasOwnProperty(name)) {
+                return true;
+            }
+
+            if (this.data.hasOwnProperty(name)) {
+                return true;
+            }
+
+            return false;
         };
 
         Model.prototype.set = function (arg1, arg2) {
             if ("string" === typeof arg1 && "undefined" !== typeof arg2) {
-                this.attributes[arg1] = arg2;
+                this.dataNew[arg1] = arg2;
             }
 
             if ("object" === typeof arg1) {
                 for (var name in arg1) {
                     if (arg1.hasOwnProperty(name)) {
-                        this.attributes[name] = arg1[name];
+                        this.dataNew[name] = arg1[name];
                     }
                 }
             }
@@ -477,10 +596,15 @@ var Light;
 
         Model.prototype.clear = function (name) {
             if ("undefined" === typeof name) {
-                this.attributes = {};
+                this.dataNew = {};
+                this.data = {};
             } else {
-                if (this.has(name)) {
-                    delete this.attributes[name];
+                if (this.dataNew.hasOwnProperty(name)) {
+                    delete this.dataNew[name];
+                }
+
+                if (this.data.hasOwnProperty(name)) {
+                    delete this.data[name];
                 }
             }
         };
@@ -492,7 +616,7 @@ var Light;
         */
         Model.prototype.create = function (callback, isGetModel) {
             var _this = this;
-            var that = this, query = this.sqlHelper.buildInsert(this.tableName, this.attributes);
+            var that = this, query = this.sqlHelper.buildInsert(this.tableName, this.getAll());
 
             if ("undefined" === typeof isGetModel) {
                 isGetModel = true;
@@ -500,12 +624,12 @@ var Light;
 
             this.connector.query(query, function (err, rows, fields) {
                 if (isGetModel) {
-                    var whereOptions = _this.attributes;
+                    var whereOptions = _this.getAll();
                     query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
                     _this.connector.query(query, function (err, rows, fields) {
                         if ("undefined" !== typeof rows && rows.length > 0) {
                             var model = new Model(_this.connector, _this.tableName, rows[0]);
-                            that.set(model.attributes);
+                            that.set(model.getAll());
 
                             if ("function" === typeof callback) {
                                 callback(err, that);
@@ -539,12 +663,22 @@ var Light;
             }
 
             if ("undefined" === typeof options) {
-                whereOptions[this.pkAttr] = this.attributes[this.pkAttr];
+                whereOptions[this.pkAttr] = this.get(this.pkAttr);
             } else {
-                whereOptions = this.updateOptionsToObject(options);
+                whereOptions = new Where(options).getBlock(this.getAll());
             }
 
-            var query = this.sqlHelper.buildUpdate(this.tableName, this.attributes, whereOptions);
+            var updateData = new Filter(this.dataNew).difference(this.data);
+
+            if (new ObjectWrapper(updateData).size() < 1) {
+                if ("function" === typeof callback) {
+                    callback("Nothing to update");
+                }
+
+                return;
+            }
+
+            var query = this.sqlHelper.buildUpdate(this.tableName, new Filter(this.dataNew).difference(this.data), whereOptions);
 
             if ("undefined" === typeof isGetModel) {
                 if ("boolean" === typeof callback) {
@@ -556,12 +690,12 @@ var Light;
 
             this.connector.query(query, function (err, rows, fields) {
                 if (isGetModel) {
-                    var whereOptions = _this.attributes;
+                    var whereOptions = _this.getAll();
                     query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
                     _this.connector.query(query, function (err, rows, fields) {
                         if ("undefined" !== typeof rows && rows.length > 0) {
                             var model = new Model(_this.connector, _this.tableName, rows[0]);
-                            that.set(model.attributes);
+                            that.set(model.getAll());
 
                             if ("function" === typeof callback) {
                                 callback(err, that);
@@ -595,9 +729,9 @@ var Light;
             }
 
             if ("undefined" === typeof options) {
-                whereOptions[this.pkAttr] = this.attributes[this.pkAttr];
+                whereOptions[this.pkAttr] = this.get(this.pkAttr);
             } else {
-                whereOptions = this.updateOptionsToObject(options);
+                whereOptions = new Where(options).getBlock(this.getAll());
             }
 
             var query = this.sqlHelper.buildDelete(this.tableName, whereOptions);
@@ -612,12 +746,12 @@ var Light;
 
             this.connector.query(query, function (err, rows, fields) {
                 if (isGetModel) {
-                    var whereOptions = _this.attributes;
+                    var whereOptions = _this.getAll();
                     query = _this.sqlHelper.buildSelect(_this.tableName, whereOptions);
                     _this.connector.query(query, function (err, rows, fields) {
                         if ("undefined" !== typeof rows && rows.length > 0) {
                             var model = new Model(_this.connector, _this.tableName, rows[0]);
-                            that.set(model.attributes);
+                            that.set(model.getAll());
 
                             if ("function" === typeof callback) {
                                 callback(err, that);
@@ -653,7 +787,7 @@ var Light;
         * @returns {object}
         */
         Model.prototype.toJSON = function () {
-            return this.attributes;
+            return this.getAll();
         };
         return Model;
     })();
@@ -665,10 +799,10 @@ var Light;
 * @license Apache License 2.0 - See file 'LICENSE.md' in this project.
 */
 ///<reference path="Model.ts" />
-///<reference path="helpers/SqlHelper.ts" />
+///<reference path="helpers/Sql/SQLHelper.ts" />
 ///<reference path="interfaces/DriverInterface.ts" />
 ///<reference path="interfaces/ToStringInterface.ts" />
-///<reference path="interfaces/JSONInterface.ts" />
+///<reference path="interfaces/ToJSONInterface.ts" />
 var Light;
 (function (Light) {
     var Collection = (function () {
