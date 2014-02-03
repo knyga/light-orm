@@ -837,6 +837,7 @@ var Light;
     var Collection = (function () {
         function Collection(options, extensions) {
             this.models = [];
+            this.isAddModel = true;
             if ("string" === typeof options) {
                 this.tableName = options;
 
@@ -875,7 +876,7 @@ var Light;
             }
 
             if ("undefined" === typeof add) {
-                add = true;
+                add = this.isAddModel;
             }
 
             model = new Light.Model(this.tableName, data, this.modelExtension);
