@@ -16,6 +16,7 @@ module Light {
         private sqlHelper: SQLHelper;
         private models: Model[] = [];
         private modelExtension: any;
+        private isAddModel = true;
 
         /**
          * Constructor
@@ -89,7 +90,7 @@ module Light {
             }
 
             if("undefined" === typeof add) {
-                add = true;
+                add = this.isAddModel;
             }
 
             model = new Model(this.tableName, data, this.modelExtension);
