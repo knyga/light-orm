@@ -1,4 +1,4 @@
-##Light-orm
+## Light-orm
 Light-orm - simple ORM node.js wrapper for relational databases. It does not depends on any specific driver, so you can connect to mysql, postgresql, ms server with your favorite driver.
 
 Your db connector (or wrapper) just should implement the interface:
@@ -11,13 +11,13 @@ This interface came from node-mysql driver, as most popular option, that lets yo
 
 Light-orm gives you freedom in choising your own driver. You should not any more make meet half-way between high driver performance with native realization and ORM wrapper.
 
-###Installation
+### Installation
 `npm install light-orm`
 
-###Development
+### Development
 Light-orm is written on typescript. Look for the sources here: lib/typescript and lib/compiler. You may find there comments in jsdoc style.
 
-###Examples
+### Examples
 Example connection (mysql):
 ```javascript
 var mysql = require('mysql'),
@@ -164,14 +164,14 @@ model.update({
 }, function(err, model) {}, false);
 ```
 
-###Licence
+### Licence
 Copyright 2014 Oleksandr Knyga <oleksandrknyga@gmail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
